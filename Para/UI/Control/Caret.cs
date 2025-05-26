@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace Para.UI
+namespace Para.UI.Control
 {
     public class Caret : BeatSyncedControl
     {
@@ -30,10 +30,11 @@ namespace Para.UI
 
         private void Caret_Loaded(object sender, RoutedEventArgs e)
         {
-            Height = (double)((Parent as Control ?? this).FontSize);
+            Height = (double)((Parent as System.Windows.Controls.Control ?? this).FontSize);
             Width = 4;
         }
-        private void OnRendering(object sender, EventArgs e)
+
+        private void OnRendering(object? sender, EventArgs e)  
         {
             var elapsed = (DateTime.Now - _lastBeatTime).TotalSeconds;
             _beatProgress = Math.Min(1.0, elapsed / _interval);
@@ -49,6 +50,7 @@ namespace Para.UI
                 CompositionTarget.Rendering -= OnRendering;
             }
         }
+
         private static Color LerpColor(Color from, Color to, double t)
         {
             byte a = (byte)(from.A + (to.A - from.A) * t);
@@ -60,7 +62,7 @@ namespace Para.UI
 
         public override void OnBeat(double interval)
         {
-            //Run on UI thread, or it will be uselesss
+            // Run on UI thread, or it will be useless  
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.Invoke(() => OnBeat(interval));

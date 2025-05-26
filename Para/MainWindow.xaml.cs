@@ -17,7 +17,7 @@ namespace Para
     /// </summary>
     public partial class MainWindow : Window
     {
-        MusicianHeart _musicianHeart = new();
+        readonly MusicianHeart _musicianHeart = new();
         public MainWindow()
         {
             InitializeComponent();

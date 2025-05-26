@@ -6,9 +6,14 @@ using System.Threading.Tasks;
 
 namespace Para.Core
 {
+    /// <summary>
+    /// Musician heart makes the program able to dance with a synced rhythm.
+    /// </summary>
     class MusicianHeart
     {
-        //Artificial heart beat interval in seconds. For debugging or when no media source.
+        /// <summary>
+        /// Artificial heart beat interval in seconds. For debugging or when no media source.
+        /// </summary>
         public double _artificialInterval { get; set; } = 0.25;
 
         private CancellationTokenSource? _cts;
@@ -18,6 +23,9 @@ namespace Para.Core
             Para.UI.BeatSyncedControl.GlobalTriggerBeat(interval);
         }
 
+        /// <summary>
+        /// If there's no media source, use it to provide rhythm.
+        /// </summary>
         public void StartArtificialHeartBeat()
         {
             if (_cts != null)
@@ -43,6 +51,9 @@ namespace Para.Core
             }, token);
         }
 
+        /// <summary>
+        /// Stop no media rhythm.
+        /// </summary>
         public void StopArtificialHeartBeat()
         {
             _cts?.Cancel();
