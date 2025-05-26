@@ -47,6 +47,9 @@ namespace Para.UI.Text
             Loaded += SpriteText_Loaded;
             Unloaded += SpriteText_Unloaded;
             UpdateSize();
+            _animationStartTime = DateTime.Now;
+            _interval = DesignDetail.Text.SpriteText.CreateInterval;
+            AnimateAppearance(true);
         }
 
         private void UpdateSize()
@@ -67,9 +70,7 @@ namespace Para.UI.Text
 
         private void SpriteText_Loaded(object sender, RoutedEventArgs e)
         {
-            _animationStartTime = DateTime.Now;
-            _interval = DesignDetail.Text.SpriteText.CreateInterval;
-            AnimateAppearance(true);
+
         }
 
         private void SpriteText_Unloaded(object sender, RoutedEventArgs e)
@@ -85,31 +86,28 @@ namespace Para.UI.Text
             var toOpacity = appearing ? 1.0 : 0.0;
             var duration = new Duration(TimeSpan.FromSeconds(_interval));
 
-            // 确保有 RenderTransform
             if (this.RenderTransform is not TranslateTransform translate)
             {
                 translate = new TranslateTransform();
                 this.RenderTransform = translate;
             }
 
-            // Opacity 动画
             var opacityAnimation = new DoubleAnimation(fromOpacity, toOpacity, duration)
             {
                 FillBehavior = FillBehavior.Stop
             };
 
-            // Y 方向动画（仅删除时）
             DoubleAnimation? yAnimation = null;
             if (!appearing)
             {
-                yAnimation = new DoubleAnimation(0, 30, duration) // 30 可调整为你想要的掉落距离
+                yAnimation = new DoubleAnimation(0, 30, duration)
                 {
                     FillBehavior = FillBehavior.Stop
                 };
                 yAnimation.Completed += (s, e) =>
                 {
                     this.Visibility = Visibility.Collapsed;
-                    translate.Y = 0; // 复位
+                    translate.Y = 0;
                 };
             }
             else
@@ -182,7 +180,7 @@ namespace Para.UI.Text
             {
                 FillBehavior = FillBehavior.Stop
             };
-            var yAnimation = new DoubleAnimation(0, 10, duration)
+            var yAnimation = new DoubleAnimation(0, 30, duration)
             {
                 FillBehavior = FillBehavior.Stop
             };

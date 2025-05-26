@@ -1,0 +1,157 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Linux\\Proj\\Para\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|d:\\linux\\proj\\para\\para\\ui\\text\\spritechar.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|solutionrelative:para\\ui\\text\\spritechar.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|d:\\linux\\proj\\para\\para\\themes\\generic.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|solutionrelative:para\\themes\\generic.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|d:\\linux\\proj\\para\\para\\ui\\control\\textbox.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|solutionrelative:para\\ui\\control\\textbox.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|d:\\linux\\proj\\para\\para\\ui\\designdetail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|solutionrelative:para\\ui\\designdetail.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|d:\\linux\\proj\\para\\para\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|solutionrelative:para\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|d:\\linux\\proj\\para\\para\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|solutionrelative:para\\app.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|d:\\linux\\proj\\para\\para\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|solutionrelative:para\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|d:\\linux\\proj\\para\\para\\datatype\\padding.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A4A4EBA-76C6-428C-901A-FF6D3DA4D9F9}|Para\\Para.csproj|solutionrelative:para\\datatype\\padding.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "SpriteChar.cs",
+              "DocumentMoniker": "D:\\Linux\\Proj\\Para\\Para\\UI\\Text\\SpriteChar.cs",
+              "RelativeDocumentMoniker": "Para\\UI\\Text\\SpriteChar.cs",
+              "ToolTip": "D:\\Linux\\Proj\\Para\\Para\\UI\\Text\\SpriteChar.cs",
+              "RelativeToolTip": "Para\\UI\\Text\\SpriteChar.cs",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAAAGYAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-26T14:25:40.961Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Generic.xaml",
+              "DocumentMoniker": "D:\\Linux\\Proj\\Para\\Para\\Themes\\Generic.xaml",
+              "RelativeDocumentMoniker": "Para\\Themes\\Generic.xaml",
+              "ToolTip": "D:\\Linux\\Proj\\Para\\Para\\Themes\\Generic.xaml",
+              "RelativeToolTip": "Para\\Themes\\Generic.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-05-26T11:26:59.708Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "TextBox.cs",
+              "DocumentMoniker": "D:\\Linux\\Proj\\Para\\Para\\UI\\Control\\TextBox.cs",
+              "RelativeDocumentMoniker": "Para\\UI\\Control\\TextBox.cs",
+              "ToolTip": "D:\\Linux\\Proj\\Para\\Para\\UI\\Control\\TextBox.cs",
+              "RelativeToolTip": "Para\\UI\\Control\\TextBox.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHIAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-26T07:32:24.786Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "DesignDetail.cs",
+              "DocumentMoniker": "D:\\Linux\\Proj\\Para\\Para\\UI\\DesignDetail.cs",
+              "RelativeDocumentMoniker": "Para\\UI\\DesignDetail.cs",
+              "ToolTip": "D:\\Linux\\Proj\\Para\\Para\\UI\\DesignDetail.cs",
+              "RelativeToolTip": "Para\\UI\\DesignDetail.cs",
+              "ViewState": "AgIAACkAAAAAAAAAAAAAAAkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-26T05:22:52.767Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MainWindow.xaml",
+              "DocumentMoniker": "D:\\Linux\\Proj\\Para\\Para\\MainWindow.xaml",
+              "RelativeDocumentMoniker": "Para\\MainWindow.xaml",
+              "ToolTip": "D:\\Linux\\Proj\\Para\\Para\\MainWindow.xaml",
+              "RelativeToolTip": "Para\\MainWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-05-26T03:48:18.599Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "App.xaml",
+              "DocumentMoniker": "D:\\Linux\\Proj\\Para\\Para\\App.xaml",
+              "RelativeDocumentMoniker": "Para\\App.xaml",
+              "ToolTip": "D:\\Linux\\Proj\\Para\\Para\\App.xaml",
+              "RelativeToolTip": "Para\\App.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-05-26T05:10:46.779Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "MainWindow.xaml.cs",
+              "DocumentMoniker": "D:\\Linux\\Proj\\Para\\Para\\MainWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Para\\MainWindow.xaml.cs",
+              "ToolTip": "D:\\Linux\\Proj\\Para\\Para\\MainWindow.xaml.cs",
+              "RelativeToolTip": "Para\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-26T05:41:04.032Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Padding.cs",
+              "DocumentMoniker": "D:\\Linux\\Proj\\Para\\Para\\DataType\\Padding.cs",
+              "RelativeDocumentMoniker": "Para\\DataType\\Padding.cs",
+              "ToolTip": "D:\\Linux\\Proj\\Para\\Para\\DataType\\Padding.cs",
+              "RelativeToolTip": "Para\\DataType\\Padding.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAAwA8AAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-26T07:47:55.714Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

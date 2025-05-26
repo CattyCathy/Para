@@ -19,6 +19,7 @@ namespace Para.UI.Control
         protected List<SpriteChar> _spriteTexts = [];
 
         private StackPanel? _charPanel;
+        private Canvas? _animationLayer;
 
         public string Text
         {
@@ -52,7 +53,7 @@ namespace Para.UI.Control
         {
             if (e.Key == Key.Back && Text.Length > 0)
             {
-                Text = Text.Substring(0, Text.Length - 1);
+                Text = Text[..^1];
                 e.Handled = true;
             }
         }
@@ -86,53 +87,75 @@ namespace Para.UI.Control
         {
             base.OnApplyTemplate();
             _charPanel = GetTemplateChild("PART_CharPanel") as StackPanel;
+            _animationLayer = GetTemplateChild("PART_AnimationLayer") as Canvas;
             UpdateSpriteChars();
         }
 
         private void UpdateSpriteChars()
         {
-            if (_charPanel == null) return;
-            var oldSprites = _spriteTexts.ToList();
-            _charPanel.Children.Clear();
-            _spriteTexts.Clear();
+            if (_charPanel == null || _animationLayer == null) return;
 
-            int i = 0;
-            for (; i < _text.Length; i++)
+            _charPanel.Children.Remove(_caret);
+            _animationLayer.Children.Remove(_caret);
+
+            var toRemove = _spriteTexts.Where((sc, idx) => idx >= Text.Length || sc.Char != Text[idx]).ToList();
+            var removePositions = new Dictionary<SpriteChar, Point>();
+            foreach (var sc in toRemove)
             {
-                SpriteChar spriteChar;
-                if (i < oldSprites.Count && oldSprites[i].Char == _text[i])
-                {
-                    spriteChar = oldSprites[i];
-                }
-                else
-                {
-                    spriteChar = new SpriteChar
-                    {
-                        Char = _text[i],
-                        FontSize = this.FontSize,
-                        Foreground = this.Foreground,
-                        HasShadow = DesignDetail.Text.SpriteText.HasShadow,
-                        ShadowColor = DesignDetail.Text.SpriteText.ShadowColor,
-                        ShadowOffset = DesignDetail.Text.SpriteText.ShadowOffset
-                    };
-                }
-                _spriteTexts.Add(spriteChar);
-                _charPanel.Children.Add(spriteChar);
+                var point = sc.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
+                removePositions[sc] = point;
             }
 
-            for (; i < oldSprites.Count; i++)
+            foreach (var sc in toRemove)
             {
-                var toDelete = oldSprites[i];
-                _charPanel.Children.Add(toDelete);
-                toDelete.PlayDeleteAnimation(() =>
+                _charPanel.Children.Remove(sc);
+                _spriteTexts.Remove(sc);
+            }
+            foreach (var sc in toRemove)
+            {
+                _animationLayer.Children.Add(sc);
+                var point = removePositions[sc];
+                Canvas.SetLeft(sc, point.X);
+                Canvas.SetTop(sc, point.Y);
+                Panel.SetZIndex(sc, 100);
+
+                sc.Width = sc.ActualWidth;
+                sc.Height = sc.ActualHeight;
+
+                sc.PlayDeleteAnimation(() =>
                 {
-                    _charPanel.Children.Remove(toDelete);
+                    _animationLayer.Children.Remove(sc);
                 });
             }
 
+            var toKeep = _spriteTexts;
+
+            for (int i = toKeep.Count; i < Text.Length; i++)
+            {
+                var spriteChar = new SpriteChar
+                {
+                    Char = Text[i],
+                    FontSize = this.FontSize,
+                    Foreground = this.Foreground,
+                    HasShadow = DesignDetail.Text.SpriteText.HasShadow,
+                    ShadowColor = DesignDetail.Text.SpriteText.ShadowColor,
+                    ShadowOffset = DesignDetail.Text.SpriteText.ShadowOffset
+                };
+                _charPanel.Children.Insert(i, spriteChar);
+                _spriteTexts.Insert(i, spriteChar);
+            }
+
+            for (int i = 0; i < _spriteTexts.Count; i++)
+            {
+                if (_charPanel.Children.IndexOf(_spriteTexts[i]) != i)
+                {
+                    _charPanel.Children.Remove(_spriteTexts[i]);
+                    _charPanel.Children.Insert(i, _spriteTexts[i]);
+                }
+            }
+
+            _charPanel.Children.Remove(_caret);
             _charPanel.Children.Add(_caret);
         }
-
-
     }
 }

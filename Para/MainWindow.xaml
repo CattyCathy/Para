@@ -10,8 +10,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid Background="Black">
-        <control:Caret Height="202" Width="4" Background="White"/>
-        <text:SpriteChar Char="x" FontSize="30" Width="6" Height="12" Foreground="White"/>
         <control:TextBox Height="30" Width="600"/>
     </Grid>
 </Window>
