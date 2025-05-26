@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Para.Core;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,9 +17,12 @@ namespace Para
     /// </summary>
     public partial class MainWindow : Window
     {
+        MusicianHeart _musicianHeart = new();
         public MainWindow()
         {
             InitializeComponent();
+
+            _musicianHeart.StartArtificialHeartBeat();
         }
     }
 }
