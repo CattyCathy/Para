@@ -24,6 +24,16 @@ namespace Para.UI.Control
         private StackPanel? _charPanel;
         private Canvas? _animationLayer;
 
+        private int _caretIndex = 0;
+        public int CaretIndex
+        {
+            get => _caretIndex;
+            set
+            {
+                _caretIndex = Math.Max(0, Math.Min(value, Text.Length));
+            }
+        }
+
         public string Text
         {
             get => _text;
@@ -48,6 +58,7 @@ namespace Para.UI.Control
         {
             Loaded += TextBox_Loaded;
             Focusable = true;
+            FocusVisualStyle = null;
             Padding = DesignDetail.Control.TextBox.Padding;
             this.PreviewKeyDown += TextBox_PreviewKeyDown;
             this.PreviewTextInput += TextBox_PreviewTextInput;
@@ -55,9 +66,10 @@ namespace Para.UI.Control
 
         private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Back && Text.Length > 0)
+            if (e.Key == Key.Back && CaretIndex > 0 && Text.Length > 0)
             {
-                Text = Text[..^1];
+                Text = Text.Remove(CaretIndex - 1, 1);
+                CaretIndex = Math.Max(0, CaretIndex - 1);
                 e.Handled = true;
             }
         }
@@ -70,7 +82,9 @@ namespace Para.UI.Control
 
         private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            Text += e.Text;
+            int newCaretIndex = CaretIndex + e.Text.Length;
+            Text = Text.Insert(CaretIndex, e.Text);
+            CaretIndex = newCaretIndex;
             e.Handled = true;
         }
 
@@ -95,15 +109,15 @@ namespace Para.UI.Control
             _charPanel = GetTemplateChild("PART_CharPanel") as StackPanel;
             _animationLayer = GetTemplateChild("PART_AnimationLayer") as Canvas;
 
+            _animationLayer?.Children.Add(_caret);
+            _caret.VerticalAlignment = VerticalAlignment.Center;
+            _caret.Margin = new Thickness(0, DesignDetail.Control.TextBox.Padding.Top, 0, DesignDetail.Control.TextBox.Padding.Bottom);
             UpdateSpriteChars();
         }
 
         private void UpdateSpriteChars()
         {
             if (_charPanel == null || _animationLayer == null) return;
-
-            _charPanel.Children.Remove(_caret);
-            _animationLayer.Children.Remove(_caret);
 
             var toRemove = _spriteTexts.Where((sc, idx) => idx >= Text.Length || sc.Char != Text[idx]).ToList();
             var removePositions = new Dictionary<SpriteChar, Point>();
@@ -160,9 +174,39 @@ namespace Para.UI.Control
                     _charPanel.Children.Insert(i, _spriteTexts[i]);
                 }
             }
-
-            _charPanel.Children.Remove(_caret);
-            _charPanel.Children.Add(_caret);
+            UpdateCaretPosition();
         }
+
+        private void UpdateCaretPosition()
+        {
+            if (_charPanel == null || _animationLayer == null) return;
+
+            var panelPoint = _charPanel.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
+            double caretX = panelPoint.X;
+            double caretY = panelPoint.Y;
+
+            if (_caretIndex > 0 && _caretIndex <= _spriteTexts.Count)
+            {
+                // Caret 在第N个字符的右侧
+                var prevChar = _spriteTexts[_caretIndex - 1];
+                var prevPoint = prevChar.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
+                caretX = prevPoint.X + prevChar.ActualWidth;
+            }
+            else if (_caretIndex > _spriteTexts.Count)
+            {
+                // 超出时，放在末尾
+                if (_spriteTexts.Count > 0)
+                {
+                    var lastChar = _spriteTexts.Last();
+                    var lastPoint = lastChar.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
+                    caretX = lastPoint.X + lastChar.ActualWidth;
+                }
+            }
+
+            Canvas.SetLeft(_caret, caretX);
+            Canvas.SetTop(_caret, caretY);
+            Panel.SetZIndex(_caret, 200);
+        }
+
     }
 }

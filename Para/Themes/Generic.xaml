@@ -30,8 +30,8 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type control:TextBox}">
                     <Grid Background="{TemplateBinding Background}">
-                        <Canvas x:Name="PART_AnimationLayer" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="{TemplateBinding Padding}"/>
-                        <StackPanel x:Name="PART_CharPanel" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="{TemplateBinding Padding}"/>
+                        <StackPanel x:Name="PART_CharPanel" Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="{TemplateBinding Padding}"/>
+                        <Canvas x:Name="PART_AnimationLayer" IsHitTestVisible="False" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="{TemplateBinding Padding}" Background="Red"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

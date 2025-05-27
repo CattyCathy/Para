@@ -27,6 +27,8 @@ namespace Para.UI.Control
 
         public Caret()
         {
+            IsHitTestVisible = false;
+            Focusable = false;
             Loaded += Caret_Loaded;
             Unloaded += (s, e) => CompositionTarget.Rendering -= OnRendering;
         }

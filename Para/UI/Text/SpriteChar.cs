@@ -50,6 +50,7 @@ namespace Para.UI.Text
             FontFamily = (Parent as System.Windows.Controls.Control ?? this).FontFamily;
             _animationStartTime = DateTime.Now;
             _interval = DesignDetail.Text.SpriteText.CreateInterval;
+            Focusable = false;
 
             Loaded += SpriteText_Loaded;
             Unloaded += SpriteText_Unloaded;
