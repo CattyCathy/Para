@@ -30,7 +30,12 @@ namespace Para.UI.Control
             get => _caretIndex;
             set
             {
-                _caretIndex = Math.Max(0, Math.Min(value, Text.Length));
+                int newValue = Math.Max(0, Math.Min(value, Text.Length));
+                if (_caretIndex != newValue)
+                {
+                    _caretIndex = newValue;
+                    UpdateCaretPosition();
+                }
             }
         }
 
@@ -68,8 +73,12 @@ namespace Para.UI.Control
         {
             if (e.Key == Key.Back && CaretIndex > 0 && Text.Length > 0)
             {
-                Text = Text.Remove(CaretIndex - 1, 1);
-                CaretIndex = Math.Max(0, CaretIndex - 1);
+                int removeIndex = CaretIndex - 1;
+                if (removeIndex >= 0 && removeIndex < Text.Length)
+                {
+                    Text = Text.Remove(removeIndex, 1);
+                    CaretIndex = removeIndex;
+                }
                 e.Handled = true;
             }
         }
@@ -174,33 +183,40 @@ namespace Para.UI.Control
                     _charPanel.Children.Insert(i, _spriteTexts[i]);
                 }
             }
+            if (CaretIndex > Text.Length)
+                CaretIndex = Text.Length;
             UpdateCaretPosition();
         }
 
         private void UpdateCaretPosition()
         {
-            if (_charPanel == null || _animationLayer == null) return;
+            if (_animationLayer == null) return;
 
-            var panelPoint = _charPanel.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
-            double caretX = panelPoint.X;
-            double caretY = panelPoint.Y;
+            double caretX = 0;
+            double caretY = 0;
 
-            if (_caretIndex > 0 && _caretIndex <= _spriteTexts.Count)
+            if (CaretIndex > 0 && !string.IsNullOrEmpty(Text))
             {
-                // Caret 在第N个字符的右侧
-                var prevChar = _spriteTexts[_caretIndex - 1];
-                var prevPoint = prevChar.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
-                caretX = prevPoint.X + prevChar.ActualWidth;
+                string textBeforeCaret = Text.Substring(0, CaretIndex);
+
+                var formattedText = new FormattedText(
+                    textBeforeCaret,
+                    System.Globalization.CultureInfo.CurrentUICulture,
+                    FlowDirection.LeftToRight,
+                    new Typeface(this.FontFamily, this.FontStyle, this.FontWeight, this.FontStretch),
+                    this.FontSize,
+                    this.Foreground,
+                    VisualTreeHelper.GetDpi(this).PixelsPerDip
+                );
+
+                caretX = formattedText.WidthIncludingTrailingWhitespace;
             }
-            else if (_caretIndex > _spriteTexts.Count)
+
+            if (_charPanel != null)
             {
-                // 超出时，放在末尾
-                if (_spriteTexts.Count > 0)
-                {
-                    var lastChar = _spriteTexts.Last();
-                    var lastPoint = lastChar.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
-                    caretX = lastPoint.X + lastChar.ActualWidth;
-                }
+                var panelPoint = _charPanel.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
+                caretX += panelPoint.X;
+                caretY = panelPoint.Y;
             }
 
             Canvas.SetLeft(_caret, caretX);
