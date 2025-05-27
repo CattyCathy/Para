@@ -24,7 +24,12 @@ namespace Para.UI.Control
         private StackPanel? _charPanel;
         private Canvas? _animationLayer;
 
+        private int? _lastRemovedCharIndex = null;
+
         private int _caretIndex = 0;
+
+        private int _selectionStart = -1;
+        private int _selectionEnd = -1;
         public int CaretIndex
         {
             get => _caretIndex;
@@ -87,6 +92,7 @@ namespace Para.UI.Control
                 int removeIndex = CaretIndex - 1;
                 if (removeIndex >= 0 && removeIndex < Text.Length)
                 {
+                    _lastRemovedCharIndex = removeIndex;
                     Text = Text.Remove(removeIndex, 1);
                     CaretIndex = removeIndex;
                 }
@@ -110,7 +116,26 @@ namespace Para.UI.Control
         {
             base.OnMouseDown(e);
             this.Focus();
+
+            if (e.ClickCount == 2)
+            {
+                // Double click: select all
+                Select(0, Text.Length);
+            }
+            else
+            {
+                // Single click: move caret
+                IInputElement inputElement = _animationLayer as IInputElement
+                    ?? _charPanel as IInputElement
+                    ?? this;
+                Point mousePos = e.GetPosition(inputElement);
+                MoveCaret(mousePos);
+                // Clear selection on single click
+                _selectionStart = -1;
+                _selectionEnd = -1;
+            }
         }
+
 
         private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
@@ -157,18 +182,26 @@ namespace Para.UI.Control
 
             //Mark characters to remove
             var toRemove = new List<SpriteChar>();
-            int oldIndex = 0, lcsIndex = 0;
-            while (oldIndex < _spriteTexts.Count)
+            if (_lastRemovedCharIndex.HasValue && _lastRemovedCharIndex.Value < _spriteTexts.Count)
             {
-                if (lcsIndex < lcs.Count && _spriteTexts[oldIndex].Char == lcs[lcsIndex])
+                toRemove.Add(_spriteTexts[_lastRemovedCharIndex.Value]);
+                _lastRemovedCharIndex = null;
+            }
+            else
+            {
+                int oldIndex = 0, lcsIndex = 0;
+                while (oldIndex < _spriteTexts.Count)
                 {
-                    oldIndex++;
-                    lcsIndex++;
-                }
-                else
-                {
-                    toRemove.Add(_spriteTexts[oldIndex]);
-                    oldIndex++;
+                    if (lcsIndex < lcs.Count && _spriteTexts[oldIndex].Char == lcs[lcsIndex])
+                    {
+                        oldIndex++;
+                        lcsIndex++;
+                    }
+                    else
+                    {
+                        toRemove.Add(_spriteTexts[oldIndex]);
+                        oldIndex++;
+                    }
                 }
             }
 
@@ -241,7 +274,6 @@ namespace Para.UI.Control
             UpdateCaretPosition();
         }
 
-
         private static List<char> LongestCommonSubsequence(List<char> a, List<char> b)
         {
             int[,] dp = new int[a.Count + 1, b.Count + 1];
@@ -268,8 +300,6 @@ namespace Para.UI.Control
             }
             return lcs;
         }
-
-
 
         private void UpdateCaretPosition()
         {
@@ -305,6 +335,57 @@ namespace Para.UI.Control
             Canvas.SetLeft(_caret, caretX);
             Canvas.SetTop(_caret, caretY);
             Panel.SetZIndex(_caret, 200);
+        }
+
+        public void MoveCaret(Point mousePosition)
+        {
+            if (_charPanel == null || _spriteTexts.Count == 0)
+            {
+                CaretIndex = 0;
+                return;
+            }
+
+            // Transform mouse position to _charPanel coordinates
+            Point panelPoint = mousePosition;
+            if (_animationLayer != null)
+                panelPoint = _animationLayer.TransformToVisual(_charPanel).Transform(mousePosition);
+
+            double x = panelPoint.X;
+            int closestIndex = 0;
+            double minDist = double.MaxValue;
+
+            for (int i = 0; i <= _spriteTexts.Count; i++)
+            {
+                double charX = 0;
+                if (i < _spriteTexts.Count)
+                {
+                    var charElem = _spriteTexts[i];
+                    charX = charElem.TransformToAncestor(_charPanel).Transform(new Point(0, 0)).X;
+                }
+                else if (_spriteTexts.Count > 0)
+                {
+                    // After last char
+                    var lastChar = _spriteTexts[^1];
+                    charX = lastChar.TransformToAncestor(_charPanel).Transform(new Point(0, 0)).X + lastChar.ActualWidth;
+                }
+
+                double dist = Math.Abs(x - charX);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    closestIndex = i;
+                }
+            }
+
+            CaretIndex = closestIndex;
+        }
+
+        public void Select(int fromIndex, int toIndex)
+        {
+            _selectionStart = Math.Max(0, Math.Min(fromIndex, toIndex));
+            _selectionEnd = Math.Min(Text.Length, Math.Max(fromIndex, toIndex));
+            // TODO: Add visual selection highlight if needed
+            // For now, just store the selection range
         }
 
     }
