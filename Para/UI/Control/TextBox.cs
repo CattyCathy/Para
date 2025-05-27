@@ -151,31 +151,34 @@ namespace Para.UI.Control
         {
             if (_charPanel == null || _animationLayer == null) return;
 
-            var newCharCounts = Text.GroupBy(c => c).ToDictionary(g => g.Key, g => g.Count());
+            var oldChars = _spriteTexts.Select(sc => sc.Char).ToList();
+            var newChars = Text.ToList();
+            var lcs = LongestCommonSubsequence(oldChars, newChars);
 
-            var oldCharCounts = _spriteTexts.GroupBy(sc => sc.Char).ToDictionary(g => g.Key, g => g.Count());
-
+            //Mark characters to remove
             var toRemove = new List<SpriteChar>();
-            var tempCounts = new Dictionary<char, int>(newCharCounts);
-
-            foreach (var sc in _spriteTexts)
+            int oldIndex = 0, lcsIndex = 0;
+            while (oldIndex < _spriteTexts.Count)
             {
-                if (!tempCounts.TryGetValue(sc.Char, out int count) || count == 0)
+                if (lcsIndex < lcs.Count && _spriteTexts[oldIndex].Char == lcs[lcsIndex])
                 {
-                    toRemove.Add(sc);
+                    oldIndex++;
+                    lcsIndex++;
                 }
                 else
                 {
-                    tempCounts[sc.Char] = count - 1;
+                    toRemove.Add(_spriteTexts[oldIndex]);
+                    oldIndex++;
                 }
             }
+
+            //Deletion animation
             var removePositions = new Dictionary<SpriteChar, Point>();
             foreach (var sc in toRemove)
             {
                 var point = sc.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
                 removePositions[sc] = point;
             }
-
             foreach (var sc in toRemove)
             {
                 _charPanel.Children.Remove(sc);
@@ -188,32 +191,41 @@ namespace Para.UI.Control
                 Canvas.SetLeft(sc, point.X);
                 Canvas.SetTop(sc, point.Y);
                 Panel.SetZIndex(sc, 100);
-
                 sc.Width = sc.ActualWidth;
                 sc.Height = sc.ActualHeight;
-
-                sc.PlayDeleteAnimation(() =>
-                {
-                    _animationLayer.Children.Remove(sc);
-                });
+                sc.PlayDeleteAnimation(() => _animationLayer.Children.Remove(sc));
             }
 
-            var toKeep = _spriteTexts;
-
-            for (int i = toKeep.Count; i < Text.Length; i++)
+            //Insert new char to avoid unexpected animation
+            var newSpriteList = new List<SpriteChar>();
+            int spriteIndex = 0, lcsIndex2 = 0;
+            for (int i = 0; i < Text.Length; i++)
             {
-                var spriteChar = new SpriteChar
+                if (lcsIndex2 < lcs.Count && Text[i] == lcs[lcsIndex2])
                 {
-                    Char = Text[i],
-                    FontSize = this.FontSize,
-                    Foreground = this.Foreground,
-                    HasShadow = DesignDetail.Text.SpriteText.HasShadow,
-                    ShadowColor = DesignDetail.Text.SpriteText.ShadowColor,
-                    ShadowOffset = DesignDetail.Text.SpriteText.ShadowOffset
-                };
-                _charPanel.Children.Insert(i, spriteChar);
-                _spriteTexts.Insert(i, spriteChar);
+                    // LCS using sprite char
+                    newSpriteList.Add(_spriteTexts[spriteIndex]);
+                    spriteIndex++;
+                    lcsIndex2++;
+                }
+                else
+                {
+                    //Added char
+                    var spriteChar = new SpriteChar
+                    {
+                        Char = Text[i],
+                        FontSize = this.FontSize,
+                        Foreground = this.Foreground,
+                        HasShadow = DesignDetail.Text.SpriteText.HasShadow,
+                        ShadowColor = DesignDetail.Text.SpriteText.ShadowColor,
+                        ShadowOffset = DesignDetail.Text.SpriteText.ShadowOffset
+                    };
+                    _charPanel.Children.Insert(i, spriteChar);
+                    newSpriteList.Add(spriteChar);
+                }
             }
+
+            _spriteTexts = newSpriteList;
 
             for (int i = 0; i < _spriteTexts.Count; i++)
             {
@@ -223,10 +235,41 @@ namespace Para.UI.Control
                     _charPanel.Children.Insert(i, _spriteTexts[i]);
                 }
             }
+
             if (CaretIndex > Text.Length)
                 CaretIndex = Text.Length;
             UpdateCaretPosition();
         }
+
+
+        private static List<char> LongestCommonSubsequence(List<char> a, List<char> b)
+        {
+            int[,] dp = new int[a.Count + 1, b.Count + 1];
+            for (int i = 0; i < a.Count; i++)
+                for (int j = 0; j < b.Count; j++)
+                    if (a[i] == b[j])
+                        dp[i + 1, j + 1] = dp[i, j] + 1;
+                    else
+                        dp[i + 1, j + 1] = Math.Max(dp[i, j + 1], dp[i + 1, j]);
+
+            var lcs = new List<char>();
+            int x = a.Count, y = b.Count;
+            while (x != 0 && y != 0)
+            {
+                if (a[x - 1] == b[y - 1])
+                {
+                    lcs.Insert(0, a[x - 1]);
+                    x--; y--;
+                }
+                else if (dp[x - 1, y] > dp[x, y - 1])
+                    x--;
+                else
+                    y--;
+            }
+            return lcs;
+        }
+
+
 
         private void UpdateCaretPosition()
         {
