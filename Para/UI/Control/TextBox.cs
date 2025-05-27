@@ -69,6 +69,17 @@ namespace Para.UI.Control
             this.PreviewTextInput += TextBox_PreviewTextInput;
         }
 
+        protected override void OnGotFocus(RoutedEventArgs e)
+        {
+            base.OnGotFocus(e);
+            _caret.Visibility = Visibility.Visible;
+        }
+        protected override void OnLostFocus(RoutedEventArgs e)
+        {
+            base.OnLostFocus(e);
+            _caret.Visibility = Visibility.Collapsed;
+        }
+
         private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Back && CaretIndex > 0 && Text.Length > 0)
@@ -79,6 +90,18 @@ namespace Para.UI.Control
                     Text = Text.Remove(removeIndex, 1);
                     CaretIndex = removeIndex;
                 }
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Left)
+            {
+                if (CaretIndex > 0)
+                    CaretIndex--;
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Right)
+            {
+                if (CaretIndex < Text.Length)
+                    CaretIndex++;
                 e.Handled = true;
             }
         }
@@ -128,7 +151,24 @@ namespace Para.UI.Control
         {
             if (_charPanel == null || _animationLayer == null) return;
 
-            var toRemove = _spriteTexts.Where((sc, idx) => idx >= Text.Length || sc.Char != Text[idx]).ToList();
+            var newCharCounts = Text.GroupBy(c => c).ToDictionary(g => g.Key, g => g.Count());
+
+            var oldCharCounts = _spriteTexts.GroupBy(sc => sc.Char).ToDictionary(g => g.Key, g => g.Count());
+
+            var toRemove = new List<SpriteChar>();
+            var tempCounts = new Dictionary<char, int>(newCharCounts);
+
+            foreach (var sc in _spriteTexts)
+            {
+                if (!tempCounts.TryGetValue(sc.Char, out int count) || count == 0)
+                {
+                    toRemove.Add(sc);
+                }
+                else
+                {
+                    tempCounts[sc.Char] = count - 1;
+                }
+            }
             var removePositions = new Dictionary<SpriteChar, Point>();
             foreach (var sc in toRemove)
             {
