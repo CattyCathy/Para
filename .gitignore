@@ -1,5 +1,9 @@
 ﻿.vs/
 .git/
+.vs
+.git
+Para/.vs
+Para/.git
 Para/.vs/
 Para/.git/
 Para/bin/
