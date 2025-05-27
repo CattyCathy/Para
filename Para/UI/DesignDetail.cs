@@ -28,6 +28,7 @@ namespace Para.UI
                 public static readonly Brush ForegroundBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
                 public static readonly double CaretWidth = 4;
                 public static readonly Thickness Padding = new(8, 4, 8, 4);
+                public static readonly double CaretMovementInterval = 0.1;
             }
         }
 

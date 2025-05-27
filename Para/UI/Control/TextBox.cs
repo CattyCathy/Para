@@ -49,6 +49,8 @@ namespace Para.UI.Control
         {
             _selectionStart = -1;
             _selectionEnd = -1;
+            RestoreCaret();
+            UpdateSelectionHighlight();
         }
         private void DeleteSelection()
         {
@@ -162,6 +164,12 @@ namespace Para.UI.Control
         {
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
             {
+                if (e.Key == Key.A)
+                {
+                    Select(0, Text.Length);
+                    e.Handled = true;
+                    return;
+                }
                 if (e.Key == Key.C)
                 {
                     CopySelection();
@@ -547,7 +555,24 @@ namespace Para.UI.Control
                 caretY = panelPoint.Y;
             }
 
-            Canvas.SetLeft(_caret, caretX);
+            if (_animationLayer != null && _caret != null && !HasSelection)
+            {
+                DoubleAnimation? xAnimation = null;
+                xAnimation = new DoubleAnimation(_caret.TransformToVisual(_animationLayer).Transform(new Point(0, 0)).X, caretX, new Duration(TimeSpan.FromSeconds(DesignDetail.Control.TextBox.CaretMovementInterval)))
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                };
+                xAnimation.Completed += (s, e) =>
+                {
+                    Canvas.SetLeft(_caret, caretX);
+                };
+                _caret.BeginAnimation(Canvas.LeftProperty, xAnimation);
+            }
+            else
+            {
+                Canvas.SetLeft(_caret, caretX);
+            }
             Canvas.SetTop(_caret, caretY);
             Panel.SetZIndex(_caret, 200);
         }
@@ -624,19 +649,42 @@ namespace Para.UI.Control
                 int end = _selectionEnd;
 
                 double selectionWidth = 0;
+                double newStartX = 0;
                 for (int i = start; i < end && i < _spriteTexts.Count; i++)
                 {
                     var sprite = _spriteTexts[i];
                     if (i == start)
                     {
-                        Point charPos = sprite.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
-                        Canvas.SetLeft(_caret, charPos.X);
+                        newStartX = sprite.TransformToVisual(_animationLayer).Transform(new Point(0, 0)).X;
                         _caret.CaretBrushHigh = _selectionCaretBrush;
                         _caret.CaretBrushLow = _selectionCaretBrush;
                     }
                     selectionWidth += sprite.ActualWidth;
                 }
-                _caret.Width = selectionWidth;
+
+                DoubleAnimation? leftAnimation = null;
+                leftAnimation = new DoubleAnimation(_caret.TransformToVisual(_animationLayer).Transform(new Point(0,0)).X, newStartX, new Duration(TimeSpan.FromSeconds(DesignDetail.Control.TextBox.CaretMovementInterval)))
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                };
+                leftAnimation.Completed += (s, e) =>
+                {
+                    Canvas.SetLeft(_caret, newStartX);
+                };
+                DoubleAnimation? widthAnimation = null;
+                widthAnimation = new DoubleAnimation(_caret.ActualWidth, selectionWidth, new Duration(TimeSpan.FromSeconds(DesignDetail.Control.TextBox.CaretMovementInterval)))
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                };
+                widthAnimation.Completed += (s, e) =>
+                {
+                    _caret.Width = selectionWidth;
+                };
+
+                _caret.BeginAnimation(Canvas.LeftProperty, leftAnimation);
+                _caret.BeginAnimation(Caret.WidthProperty, widthAnimation);
 
                 //Apply rect to every single character(another selection method)
                 //for (int i = start; i < end && i < _spriteTexts.Count; i++)
@@ -665,9 +713,19 @@ namespace Para.UI.Control
 
         private void RestoreCaret()
         {
-            _caret.Width = _caretOriginalWidth;
             _caret.CaretBrushHigh = _caretOriginalHighColor ?? DesignDetail.Control.Caret.CaretBrushHigh;
             _caret.CaretBrushLow = _caretOriginalLowColor ?? DesignDetail.Control.Caret.CaretBrushLow;
+            DoubleAnimation? widthAnimation = null;
+            widthAnimation = new DoubleAnimation(_caret.ActualWidth, _caretOriginalWidth, new Duration(TimeSpan.FromSeconds(DesignDetail.Control.TextBox.CaretMovementInterval)))
+            {
+                FillBehavior = FillBehavior.Stop,
+                EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+            };
+            widthAnimation.Completed += (s, e) =>
+            {
+                _caret.Width = _caretOriginalWidth;
+            };
+            _caret.BeginAnimation(WidthProperty, widthAnimation);
 
             _caret.Visibility = Visibility.Visible;
             UpdateCaretPosition();
