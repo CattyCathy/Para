@@ -31,24 +31,23 @@ namespace Para.UI.Control
 
         private int _caretIndex = 0;
 
-
-
-        //AI gen
         private int _selectionStart = -1;
         private int _selectionEnd = -1;
-        private readonly Brush _selectionCaretBrush = new SolidColorBrush(Color.FromArgb(0x88, 0x33, 0x99, 0xFF)); // 选中时的颜色
+        private readonly Brush _selectionCaretBrush = new SolidColorBrush(Color.FromArgb(0x88, 0x33, 0x99, 0xFF));
         private double _caretOriginalWidth;
         private Brush _caretOriginalHighColor;
         private Brush _caretOriginalLowColor;
         private bool _isMouseSelecting = false;//Changing selecting zone using mouse
-        //private readonly List<Rectangle> _selectionRects = new();
-        private int _mouseSelectAnchor = -1;
+        private bool _isKeyboardSelecting = false;//Changing selecting zone using keyboard
+        private int _SelectAnchor = -1;
         private bool HasSelection => _selectionStart >= 0 && _selectionEnd > _selectionStart;
 
         private void CancelSelection()
         {
             _selectionStart = -1;
             _selectionEnd = -1;
+            _isKeyboardSelecting = false;
+            _isMouseSelecting = false;
             RestoreCaret();
             UpdateSelectionHighlight();
         }
@@ -72,7 +71,6 @@ namespace Para.UI.Control
         {
             if (!HasSelection)
             {
-                // 普通插入
                 Text = Text.Insert(CaretIndex, newText);
                 CaretIndex += newText.Length;
             }
@@ -101,7 +99,6 @@ namespace Para.UI.Control
                 DeleteSelection();
             }
         }
-
 
         public int CaretIndex
         {
@@ -146,7 +143,19 @@ namespace Para.UI.Control
             _caretOriginalLowColor = DesignDetail.Control.Caret.CaretBrushLow;
             Padding = DesignDetail.Control.TextBox.Padding;
             this.PreviewKeyDown += TextBox_PreviewKeyDown;
+            this.PreviewKeyUp += TextBox_PreviewKeyUp;
             this.PreviewTextInput += TextBox_PreviewTextInput;
+        }
+
+        private void TextBox_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.LeftShift || e.Key == Key.RightShift)
+            {
+                if (!HasSelection)
+                {
+                    _isKeyboardSelecting = false;
+                }
+            }
         }
 
         protected override void OnGotFocus(RoutedEventArgs e)
@@ -162,6 +171,30 @@ namespace Para.UI.Control
 
         private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
+            {
+                if(e.Key == Key.Left || e.Key == Key.Right)
+                {
+                    if (!_isKeyboardSelecting && !HasSelection)
+                    {
+                        _SelectAnchor = CaretIndex;
+                    }
+                    _isKeyboardSelecting = true;
+                    //Shift + Arrow keys to select characters
+                    if (e.Key == Key.Left)
+                    {
+                        CaretIndex--;
+                    }
+                    else if (e.Key == Key.Right)
+                    {
+                        CaretIndex++;
+                    }
+                    
+                    Select(_SelectAnchor, CaretIndex);
+                    e.Handled = true;
+                    return;
+                }
+            }
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
             {
                 if (e.Key == Key.A)
@@ -278,7 +311,7 @@ namespace Para.UI.Control
                 //Click and drag to select characters
                 int caretIdx = GetCaretIndexFromPoint(mousePos);
                 CaretIndex = caretIdx;
-                _mouseSelectAnchor = caretIdx;
+                _SelectAnchor = caretIdx;
                 _isMouseSelecting = true;
                 _selectionStart = caretIdx;
                 _selectionEnd = caretIdx;
@@ -298,7 +331,7 @@ namespace Para.UI.Control
                 Point mousePos = e.GetPosition(inputElement);
                 int caretIdx = GetCaretIndexFromPoint(mousePos);
                 CaretIndex = caretIdx;
-                Select(_mouseSelectAnchor, caretIdx);
+                Select(_SelectAnchor, caretIdx);
                 InvalidateVisual();
             }
         }
