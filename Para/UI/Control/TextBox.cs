@@ -9,6 +9,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media;
+using System.Windows.Shapes;
+using System.Windows.Media.Media3D;
 
 namespace Para.UI.Control
 {
@@ -25,11 +27,100 @@ namespace Para.UI.Control
         private Canvas? _animationLayer;
 
         private int? _lastRemovedCharIndex = null;
+        private HashSet<int>? _lastRemovedCharIndices = null;
 
         private int _caretIndex = 0;
 
+
+
+        //AI gen
         private int _selectionStart = -1;
         private int _selectionEnd = -1;
+        private readonly Brush _selectionCaretBrush = new SolidColorBrush(Color.FromArgb(0x88, 0x33, 0x99, 0xFF)); // 选中时的颜色
+        private double _caretOriginalWidth;
+        private Brush _carerOriginalHighColor;
+        private Brush _carerOriginalLowColor;
+        private bool _isMouseSelecting = false;//Changing selecting zone using mouse
+        //private readonly List<Rectangle> _selectionRects = new();
+        private int _mouseSelectAnchor = -1;
+        private bool HasSelection => _selectionStart >= 0 && _selectionEnd > _selectionStart;
+
+        private void CancelSelection()
+        {
+            _selectionStart = -1;
+            _selectionEnd = -1;
+        }
+        private void DeleteSelection()
+        {
+            if (!HasSelection) return;
+            int start = _selectionStart;
+            int length = _selectionEnd - _selectionStart;
+            if (length > 0)
+            {
+                _lastRemovedCharIndices = new HashSet<int>();
+                for (int i = 0; i < length; i++)
+                    _lastRemovedCharIndices.Add(start + i);
+            }
+            Text = Text.Remove(start, length);
+            RestoreCaret();
+            CaretIndex = start;
+            CancelSelection();
+        }
+        private void ReplaceSelection(string newText)
+        {
+            if (!HasSelection)
+            {
+                // 普通插入
+                Text = Text.Insert(CaretIndex, newText);
+                CaretIndex += newText.Length;
+            }
+            else
+            {
+                int start = _selectionStart;
+                int length = _selectionEnd - _selectionStart;
+                Text = Text.Remove(start, length).Insert(start, newText);
+                CaretIndex = start + newText.Length;
+                CancelSelection();
+            }
+        }
+        private void CopySelection()
+        {
+            if (HasSelection)
+            {
+                Clipboard.SetText(Text.Substring(_selectionStart, _selectionEnd - _selectionStart));
+            }
+        }
+
+        private void CutSelection()
+        {
+            if (HasSelection)
+            {
+                CopySelection();
+                DeleteSelection();
+            }
+        }
+
+        protected override void OnRender(DrawingContext drawingContext)
+        {
+            base.OnRender(drawingContext);
+        
+            if (HasSelection && _charPanel != null && _spriteTexts.Count > 0)
+            {
+                int start = _selectionStart;
+                int end = _selectionEnd;
+
+                for (int i = start; i < end && i < _spriteTexts.Count; i++)
+                {
+                    var sprite = _spriteTexts[i];
+                    //Get position of char at _animationLayer
+                    Point charPos = sprite.TransformToAncestor(this).Transform(new Point(0, 0));
+                    double width = sprite.ActualWidth;
+                    double height = sprite.ActualHeight;
+                }
+            }
+        }
+
+
         public int CaretIndex
         {
             get => _caretIndex;
@@ -87,9 +178,65 @@ namespace Para.UI.Control
 
         private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+            {
+                if (e.Key == Key.C)
+                {
+                    CopySelection();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Key == Key.X)
+                {
+                    CutSelection();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Key == Key.V)
+                {
+                    if (Clipboard.ContainsText())
+                    {
+                        RestoreCaret();
+                        ReplaceSelection(Clipboard.GetText());
+                        e.Handled = true;
+                        return;
+                    }
+                }
+            }
+
+            if (HasSelection)
+            {
+                //Backspace/Delete to delete selection
+                if (e.Key == Key.Back || e.Key == Key.Delete)
+                {
+                    DeleteSelection();
+                    e.Handled = true;
+                    return;
+                }
+                //Arrow keys to move caret and cancel selection
+                if (e.Key == Key.Left || e.Key == Key.Right)
+                {
+                    CaretIndex = e.Key == Key.Left ? _selectionStart : _selectionEnd;
+                    CancelSelection();
+                    e.Handled = true;
+                    return;
+                }
+            }
+
             if (e.Key == Key.Back && CaretIndex > 0 && Text.Length > 0)
             {
                 int removeIndex = CaretIndex - 1;
+                if (removeIndex >= 0 && removeIndex < Text.Length)
+                {
+                    _lastRemovedCharIndex = removeIndex;
+                    Text = Text.Remove(removeIndex, 1);
+                    CaretIndex = removeIndex;
+                }
+                e.Handled = true;
+            }
+            else if(e.Key == Key.Delete && CaretIndex - 1 < Text.Length && Text.Length > 0)
+            {
+                int removeIndex = CaretIndex;
                 if (removeIndex >= 0 && removeIndex < Text.Length)
                 {
                     _lastRemovedCharIndex = removeIndex;
@@ -114,34 +261,112 @@ namespace Para.UI.Control
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
+            if (!HasSelection)
+            {
+                _caretOriginalWidth = _caret.Width;
+                _carerOriginalHighColor = _caret.CaretBrushHigh;
+                _carerOriginalLowColor = _caret.CaretBrushLow;
+            }
+
             base.OnMouseDown(e);
             this.Focus();
+
+            IInputElement inputElement = _animationLayer as IInputElement
+                ?? _charPanel as IInputElement
+                ?? this;
+            Point mousePos = e.GetPosition(inputElement);
 
             if (e.ClickCount == 2)
             {
                 // Double click: select all
                 Select(0, Text.Length);
+                _isMouseSelecting = false;
             }
             else
             {
-                // Single click: move caret
+                RestoreCaret();
+                //Click and drag to select characters
+                int caretIdx = GetCaretIndexFromPoint(mousePos);
+                CaretIndex = caretIdx;
+                _mouseSelectAnchor = caretIdx;
+                _isMouseSelecting = true;
+                _selectionStart = caretIdx;
+                _selectionEnd = caretIdx;
+                CaptureMouse();
+                _caret.Visibility = Visibility.Visible;
+                UpdateCaretPosition();
+            }
+        }
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            if (_isMouseSelecting && e.LeftButton == MouseButtonState.Pressed)
+            {
                 IInputElement inputElement = _animationLayer as IInputElement
                     ?? _charPanel as IInputElement
                     ?? this;
                 Point mousePos = e.GetPosition(inputElement);
-                MoveCaret(mousePos);
-                // Clear selection on single click
-                _selectionStart = -1;
-                _selectionEnd = -1;
+                int caretIdx = GetCaretIndexFromPoint(mousePos);
+                CaretIndex = caretIdx;
+                Select(_mouseSelectAnchor, caretIdx);
+                InvalidateVisual();
             }
         }
 
+        protected override void OnMouseUp(MouseButtonEventArgs e)
+        {
+            base.OnMouseUp(e);
+            if (_isMouseSelecting)
+            {
+                _isMouseSelecting = false;
+                ReleaseMouseCapture();
+                //Cancel selection if the start and end are the same
+                if (_selectionStart == _selectionEnd)
+                    CancelSelection();
+            }
+        }
+
+        private int GetCaretIndexFromPoint(Point mousePosition)
+        {
+            if (_charPanel == null || _spriteTexts.Count == 0)
+                return 0;
+
+            Point panelPoint = mousePosition;
+            if (_animationLayer != null)
+                panelPoint = _animationLayer.TransformToVisual(_charPanel).Transform(mousePosition);
+
+            double x = panelPoint.X;
+            int closestIndex = 0;
+            double minDist = double.MaxValue;
+
+            for (int i = 0; i <= _spriteTexts.Count; i++)
+            {
+                double charX = 0;
+                if (i < _spriteTexts.Count)
+                {
+                    var charElem = _spriteTexts[i];
+                    charX = charElem.TransformToAncestor(_charPanel).Transform(new Point(0, 0)).X;
+                }
+                else if (_spriteTexts.Count > 0)
+                {
+                    var lastChar = _spriteTexts[^1];
+                    charX = lastChar.TransformToAncestor(_charPanel).Transform(new Point(0, 0)).X + lastChar.ActualWidth;
+                }
+
+                double dist = Math.Abs(x - charX);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    closestIndex = i;
+                }
+            }
+            return closestIndex;
+        }
 
         private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            int newCaretIndex = CaretIndex + e.Text.Length;
-            Text = Text.Insert(CaretIndex, e.Text);
-            CaretIndex = newCaretIndex;
+            RestoreCaret();
+            ReplaceSelection(e.Text);
             e.Handled = true;
         }
 
@@ -180,9 +405,17 @@ namespace Para.UI.Control
             var newChars = Text.ToList();
             var lcs = LongestCommonSubsequence(oldChars, newChars);
 
-            //Mark characters to remove
             var toRemove = new List<SpriteChar>();
-            if (_lastRemovedCharIndex.HasValue && _lastRemovedCharIndex.Value < _spriteTexts.Count)
+            if (_lastRemovedCharIndices != null)
+            {
+                foreach (var idx in _lastRemovedCharIndices.OrderByDescending(i => i))
+                {
+                    if (idx >= 0 && idx < _spriteTexts.Count)
+                        toRemove.Add(_spriteTexts[idx]);
+                }
+                _lastRemovedCharIndices = null;
+            }
+            else if (_lastRemovedCharIndex.HasValue && _lastRemovedCharIndex.Value < _spriteTexts.Count)
             {
                 toRemove.Add(_spriteTexts[_lastRemovedCharIndex.Value]);
                 _lastRemovedCharIndex = null;
@@ -378,14 +611,85 @@ namespace Para.UI.Control
             }
 
             CaretIndex = closestIndex;
+            RestoreCaret();
         }
 
         public void Select(int fromIndex, int toIndex)
         {
             _selectionStart = Math.Max(0, Math.Min(fromIndex, toIndex));
             _selectionEnd = Math.Min(Text.Length, Math.Max(fromIndex, toIndex));
-            // TODO: Add visual selection highlight if needed
-            // For now, just store the selection range
+
+            if (HasSelection)
+            {
+                UpdateSelectionHighlight();
+            }
+            else
+            {
+                RestoreCaret();
+            }
+        }
+        private void UpdateSelectionHighlight()
+        {
+            if (_animationLayer == null) return;
+
+            //foreach (var rect in _selectionRects)
+            //    _animationLayer.Children.Remove(rect);
+            //_selectionRects.Clear();
+
+            if (HasSelection && _charPanel != null && _spriteTexts.Count > 0)
+            {
+                int start = _selectionStart;
+                int end = _selectionEnd;
+
+                double selectionWidth = 0;
+                for (int i = start; i < end && i < _spriteTexts.Count; i++)
+                {
+                    var sprite = _spriteTexts[i];
+                    if (i == start)
+                    {
+                        Point charPos = sprite.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
+                        Canvas.SetLeft(_caret, charPos.X);
+                        _caret.CaretBrushHigh = _selectionCaretBrush;
+                        _caret.CaretBrushLow = _selectionCaretBrush;
+                    }
+                    selectionWidth += sprite.ActualWidth;
+                }
+                _caret.Width = selectionWidth;
+
+                //Apply rect to every single character(another selection method)
+                //for (int i = start; i < end && i < _spriteTexts.Count; i++)
+                //{
+                //    var sprite = _spriteTexts[i];
+                //    Point charPos = sprite.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
+                //    double width = sprite.ActualWidth;
+                //    double height = sprite.ActualHeight;
+
+
+                //    //var rect = new Rectangle
+                //    //{
+                //    //    Width = width,
+                //    //    Height = height,
+                //    //    Fill = _selectionHighlightBrush,
+                //    //    IsHitTestVisible = false
+                //    //};
+                //    Canvas.SetLeft(rect, charPos.X);
+                //    Canvas.SetTop(rect, charPos.Y);
+                //    Panel.SetZIndex(rect, 50);
+                //    //_animationLayer.Children.Add(rect);
+                //    //_selectionRects.Add(rect);
+                //}
+            }
+        }
+
+
+        private void RestoreCaret(bool force = false)
+        {
+            _caret.Width = _caretOriginalWidth;
+            _caret.CaretBrushHigh = _carerOriginalHighColor ?? DesignDetail.Control.Caret.CaretBrushHigh;
+            _caret.CaretBrushLow = _carerOriginalLowColor ?? DesignDetail.Control.Caret.CaretBrushLow;
+
+            _caret.Visibility = Visibility.Visible;
+            UpdateCaretPosition();
         }
 
     }
