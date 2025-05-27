@@ -12,6 +12,9 @@ using System.Windows.Media;
 
 namespace Para.UI.Control
 {
+    /// <summary>
+    /// Textbox with rhythm synced caret and animated characters.
+    /// </summary>
     public class TextBox : BeatSyncedControl
     {
         public Caret _caret = new();
@@ -45,6 +48,7 @@ namespace Para.UI.Control
         {
             Loaded += TextBox_Loaded;
             Focusable = true;
+            Padding = DesignDetail.Control.TextBox.Padding;
             this.PreviewKeyDown += TextBox_PreviewKeyDown;
             this.PreviewTextInput += TextBox_PreviewTextInput;
         }
@@ -86,8 +90,11 @@ namespace Para.UI.Control
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
+
+            //Get controls
             _charPanel = GetTemplateChild("PART_CharPanel") as StackPanel;
             _animationLayer = GetTemplateChild("PART_AnimationLayer") as Canvas;
+
             UpdateSpriteChars();
         }
 

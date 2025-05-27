@@ -18,7 +18,7 @@
                    <Border Background="{TemplateBinding Background}"
                            Width="{TemplateBinding Width}"
                            Height="{TemplateBinding Height}"
-                           CornerRadius="2">
+                           CornerRadius="1.5">
                    </Border>
                </ControlTemplate>
            </Setter.Value>
@@ -29,9 +29,9 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type control:TextBox}">
-                    <Grid>
-                        <Canvas x:Name="PART_AnimationLayer" IsHitTestVisible="False" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                        <StackPanel x:Name="PART_CharPanel" Orientation="Horizontal" Background="{TemplateBinding Background}" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                    <Grid Background="{TemplateBinding Background}">
+                        <Canvas x:Name="PART_AnimationLayer" IsHitTestVisible="False" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="{TemplateBinding Padding}"/>
+                        <StackPanel x:Name="PART_CharPanel" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="{TemplateBinding Padding}"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

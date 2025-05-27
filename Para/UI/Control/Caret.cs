@@ -6,6 +6,9 @@ using System.Windows.Threading;
 
 namespace Para.UI.Control
 {
+    /// <summary>
+    /// Rhythm powered caret!
+    /// </summary>
     public class Caret : BeatSyncedControl
     {
         public Brush CaretBrushHigh { get; set; } = DesignDetail.Control.Caret.CaretBrushHigh;
@@ -30,8 +33,8 @@ namespace Para.UI.Control
 
         private void Caret_Loaded(object sender, RoutedEventArgs e)
         {
-            Height = (double)((Parent as System.Windows.Controls.Control ?? this).FontSize);
-            Width = 4;
+            Height = (double)((Parent as System.Windows.Controls.Control ?? this).FontSize)+2;
+            Width = DesignDetail.Control.Caret.Width;
         }
 
         private void OnRendering(object? sender, EventArgs e)  

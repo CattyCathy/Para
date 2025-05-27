@@ -11,6 +11,9 @@ using System.Windows.Media.Animation;
 
 namespace Para.UI.Text
 {
+    /// <summary>
+    /// Character unit in TextBox to make it possible to have animation for single characters
+    /// </summary>
     public class SpriteChar : BeatSyncedControl
     {
         public bool HasShadow;
@@ -44,11 +47,14 @@ namespace Para.UI.Text
 
         public SpriteChar()
         {
-            Loaded += SpriteText_Loaded;
-            Unloaded += SpriteText_Unloaded;
-            UpdateSize();
+            FontFamily = (Parent as System.Windows.Controls.Control ?? this).FontFamily;
             _animationStartTime = DateTime.Now;
             _interval = DesignDetail.Text.SpriteText.CreateInterval;
+
+            Loaded += SpriteText_Loaded;
+            Unloaded += SpriteText_Unloaded;
+
+            UpdateSize();
             AnimateAppearance(true);
         }
 
@@ -80,6 +86,10 @@ namespace Para.UI.Text
             AnimateAppearance(false);
         }
 
+        /// <summary>
+        /// Animation for appearance and disappearance of the character.
+        /// </summary>
+        /// <param name="appearing">If the character is apperaing</param>
         private void AnimateAppearance(bool appearing)
         {
             var fromOpacity = appearing ? 0.0 : 1.0;
@@ -100,9 +110,10 @@ namespace Para.UI.Text
             DoubleAnimation? yAnimation = null;
             if (!appearing)
             {
-                yAnimation = new DoubleAnimation(0, 30, duration)
+                yAnimation = new DoubleAnimation(0, DesignDetail.Text.SpriteText.DropEnd, duration)
                 {
-                    FillBehavior = FillBehavior.Stop
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
                 };
                 yAnimation.Completed += (s, e) =>
                 {
@@ -163,46 +174,13 @@ namespace Para.UI.Text
             drawingContext.DrawText(formattedText, new System.Windows.Point(0, 0));
         }
 
+        /// <summary>
+        /// Though it has no code, don't remove this method or TextBox will not be able to animate the deletion of this character.
+        /// </summary>
+        /// <param name="onCompleted"></param>
         public void PlayDeleteAnimation(Action? onCompleted = null)
         {
-            var interval = DesignDetail.Text.SpriteText.DestroyInterval;
-            var fromOpacity = 1.0;
-            var toOpacity = 0.0;
-            var duration = new Duration(TimeSpan.FromSeconds(interval));
 
-            if (this.RenderTransform is not TranslateTransform translate)
-            {
-                translate = new TranslateTransform();
-                this.RenderTransform = translate;
-            }
-
-            var opacityAnimation = new DoubleAnimation(fromOpacity, toOpacity, duration)
-            {
-                FillBehavior = FillBehavior.Stop
-            };
-            var yAnimation = new DoubleAnimation(0, 30, duration)
-            {
-                FillBehavior = FillBehavior.Stop
-            };
-
-            int completedCount = 0;
-            void OnAnyCompleted(object? s, EventArgs e)
-            {
-                completedCount++;
-                if (completedCount == 2)
-                {
-                    this.Visibility = Visibility.Collapsed;
-                    translate.Y = 0;
-                    this.Opacity = 0;
-                    onCompleted?.Invoke();
-                }
-            }
-
-            opacityAnimation.Completed += OnAnyCompleted;
-            yAnimation.Completed += OnAnyCompleted;
-
-            this.BeginAnimation(OpacityProperty, opacityAnimation);
-            translate.BeginAnimation(TranslateTransform.YProperty, yAnimation);
         }
     }
 }
