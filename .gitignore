@@ -1,4 +1,7 @@
 ﻿.vs/
+.git/
+Para/.vs/
+Para/.git/
 Para/bin/
 Para/obj/
 .gitignore
