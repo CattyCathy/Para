@@ -27,13 +27,13 @@ namespace Para.UI
                 public static readonly Brush BackgroundBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0x20, 0x20, 0x20));
                 public static readonly Brush ForegroundBrush = new SolidColorBrush(Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF));
                 public static readonly double CaretWidth = 4;
-                public static readonly Thickness Padding = new Thickness(8, 4, 8, 4);
+                public static readonly Thickness Padding = new(8, 4, 8, 4);
             }
         }
 
         public static class Text
         {
-            public static readonly FontFamily DefaultFontFamily = new FontFamily("Segoe UI");
+            public static readonly FontFamily DefaultFontFamily = new("Segoe UI");
             public static class SpriteText
             {
                 public static readonly bool HasShadow = true;

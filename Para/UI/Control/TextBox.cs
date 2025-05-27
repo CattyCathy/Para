@@ -38,8 +38,8 @@ namespace Para.UI.Control
         private int _selectionEnd = -1;
         private readonly Brush _selectionCaretBrush = new SolidColorBrush(Color.FromArgb(0x88, 0x33, 0x99, 0xFF)); // 选中时的颜色
         private double _caretOriginalWidth;
-        private Brush _carerOriginalHighColor;
-        private Brush _carerOriginalLowColor;
+        private Brush _caretOriginalHighColor;
+        private Brush _caretOriginalLowColor;
         private bool _isMouseSelecting = false;//Changing selecting zone using mouse
         //private readonly List<Rectangle> _selectionRects = new();
         private int _mouseSelectAnchor = -1;
@@ -57,7 +57,7 @@ namespace Para.UI.Control
             int length = _selectionEnd - _selectionStart;
             if (length > 0)
             {
-                _lastRemovedCharIndices = new HashSet<int>();
+                _lastRemovedCharIndices = [];
                 for (int i = 0; i < length; i++)
                     _lastRemovedCharIndices.Add(start + i);
             }
@@ -87,7 +87,7 @@ namespace Para.UI.Control
         {
             if (HasSelection)
             {
-                Clipboard.SetText(Text.Substring(_selectionStart, _selectionEnd - _selectionStart));
+                Clipboard.SetText(Text[_selectionStart.._selectionEnd]);
             }
         }
 
@@ -97,26 +97,6 @@ namespace Para.UI.Control
             {
                 CopySelection();
                 DeleteSelection();
-            }
-        }
-
-        protected override void OnRender(DrawingContext drawingContext)
-        {
-            base.OnRender(drawingContext);
-        
-            if (HasSelection && _charPanel != null && _spriteTexts.Count > 0)
-            {
-                int start = _selectionStart;
-                int end = _selectionEnd;
-
-                for (int i = start; i < end && i < _spriteTexts.Count; i++)
-                {
-                    var sprite = _spriteTexts[i];
-                    //Get position of char at _animationLayer
-                    Point charPos = sprite.TransformToAncestor(this).Transform(new Point(0, 0));
-                    double width = sprite.ActualWidth;
-                    double height = sprite.ActualHeight;
-                }
             }
         }
 
@@ -160,6 +140,8 @@ namespace Para.UI.Control
             Loaded += TextBox_Loaded;
             Focusable = true;
             FocusVisualStyle = null;
+            _caretOriginalHighColor = DesignDetail.Control.Caret.CaretBrushHigh;
+            _caretOriginalLowColor = DesignDetail.Control.Caret.CaretBrushLow;
             Padding = DesignDetail.Control.TextBox.Padding;
             this.PreviewKeyDown += TextBox_PreviewKeyDown;
             this.PreviewTextInput += TextBox_PreviewTextInput;
@@ -264,8 +246,8 @@ namespace Para.UI.Control
             if (!HasSelection)
             {
                 _caretOriginalWidth = _caret.Width;
-                _carerOriginalHighColor = _caret.CaretBrushHigh;
-                _carerOriginalLowColor = _caret.CaretBrushLow;
+                _caretOriginalHighColor = _caret.CaretBrushHigh;
+                _caretOriginalLowColor = _caret.CaretBrushLow;
             }
 
             base.OnMouseDown(e);
@@ -543,7 +525,7 @@ namespace Para.UI.Control
 
             if (CaretIndex > 0 && !string.IsNullOrEmpty(Text))
             {
-                string textBeforeCaret = Text.Substring(0, CaretIndex);
+                string textBeforeCaret = Text[..CaretIndex];
 
                 var formattedText = new FormattedText(
                     textBeforeCaret,
@@ -681,12 +663,11 @@ namespace Para.UI.Control
             }
         }
 
-
-        private void RestoreCaret(bool force = false)
+        private void RestoreCaret()
         {
             _caret.Width = _caretOriginalWidth;
-            _caret.CaretBrushHigh = _carerOriginalHighColor ?? DesignDetail.Control.Caret.CaretBrushHigh;
-            _caret.CaretBrushLow = _carerOriginalLowColor ?? DesignDetail.Control.Caret.CaretBrushLow;
+            _caret.CaretBrushHigh = _caretOriginalHighColor ?? DesignDetail.Control.Caret.CaretBrushHigh;
+            _caret.CaretBrushLow = _caretOriginalLowColor ?? DesignDetail.Control.Caret.CaretBrushLow;
 
             _caret.Visibility = Visibility.Visible;
             UpdateCaretPosition();
