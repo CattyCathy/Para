@@ -54,7 +54,7 @@ namespace Para.UI
                 public static readonly double ScrollBarMinLength = 16;
 
                 //Animation
-                public static readonly double BackgroundBrushChangeInterval = 0.3;
+                public static readonly double BackgroundBrushChangeInterval = 0.15;
             }
             public static class ScrollBarcontainer
             {
