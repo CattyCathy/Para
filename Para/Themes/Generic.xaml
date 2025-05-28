@@ -9,21 +9,21 @@
        xmlns:text="clr-namespace:Para.UI.Text">
 
     <Style TargetType="{x:Type control:Caret}">
-       <Setter Property="Width" Value="4"/>
-       <Setter Property="Height" Value="16"/>
-       <Setter Property="Background" Value="White"/>
-       <Setter Property="Template">
-           <Setter.Value>
+        <Setter Property="Width" Value="4"/>
+        <Setter Property="Height" Value="16"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Template">
+            <Setter.Value>
                 <ControlTemplate TargetType="{x:Type control:Caret}">
-                   <Border Background="{TemplateBinding Background}"
+                    <Border Background="{TemplateBinding Background}"
                            Width="{TemplateBinding Width}"
                            Height="{TemplateBinding Height}"
                            CornerRadius="1.5">
-                   </Border>
-               </ControlTemplate>
-           </Setter.Value>
-       </Setter>
-   </Style>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 
     <Style TargetType="{x:Type control:TextBox}">
         <Setter Property="Template">
@@ -33,6 +33,22 @@
                         <StackPanel x:Name="PART_CharPanel" Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="{TemplateBinding Padding}"/>
                         <Canvas x:Name="PART_AnimationLayer" IsHitTestVisible="False" VerticalAlignment="Stretch" HorizontalAlignment="Left" Margin="{TemplateBinding Padding}"/>
                     </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type control:ScrollBar}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type control:ScrollBar}">
+                    <Border>
+                        <Grid Background="{TemplateBinding Background}"
+                              Width="{TemplateBinding Width}"
+                              Height="{TemplateBinding Height}">
+
+                        </Grid>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
