@@ -11,12 +11,14 @@ namespace Para.UI.Control
     /// </summary>
     public class Caret : BeatSyncedControl
     {
+        // Runtime values
+        protected double _beatProgress;
+        protected double _interval;
+        protected DateTime _lastBeatTime = DateTime.Now;
+
+        // Public settable properties
         public Brush CaretBrushHigh { get; set; } = DesignDetail.Control.Caret.CaretBrushHigh;
         public Brush CaretBrushLow { get; set; } = DesignDetail.Control.Caret.CaretBrushLow;
-
-        private double _beatProgress;
-        private double _interval;
-        private DateTime _lastBeatTime = DateTime.Now;
 
         static Caret()
         {
@@ -39,6 +41,10 @@ namespace Para.UI.Control
             Width = DesignDetail.Control.Caret.Width;
         }
 
+
+        // Events
+
+        // Events: Rendering
         private void OnRendering(object? sender, EventArgs e)  
         {
             var elapsed = (DateTime.Now - _lastBeatTime).TotalSeconds;
@@ -56,15 +62,7 @@ namespace Para.UI.Control
             }
         }
 
-        private static Color LerpColor(Color from, Color to, double t)
-        {
-            byte a = (byte)(from.A + (to.A - from.A) * t);
-            byte r = (byte)(from.R + (to.R - from.R) * t);
-            byte g = (byte)(from.G + (to.G - from.G) * t);
-            byte b = (byte)(from.B + (to.B - from.B) * t);
-            return Color.FromArgb(a, r, g, b);
-        }
-
+        //Events: Beat
         public override void OnBeat(double interval)
         {
             // Run on UI thread, or it will be useless  
@@ -80,6 +78,18 @@ namespace Para.UI.Control
             _lastBeatTime = DateTime.Now;
             CompositionTarget.Rendering -= OnRendering;
             CompositionTarget.Rendering += OnRendering;
+        }
+
+        // Methods
+
+        // Methods: Helper
+        private static Color LerpColor(Color from, Color to, double t)
+        {
+            byte a = (byte)(from.A + (to.A - from.A) * t);
+            byte r = (byte)(from.R + (to.R - from.R) * t);
+            byte g = (byte)(from.G + (to.G - from.G) * t);
+            byte b = (byte)(from.B + (to.B - from.B) * t);
+            return Color.FromArgb(a, r, g, b);
         }
     }
 }
