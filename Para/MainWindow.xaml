@@ -8,8 +8,12 @@
         xmlns:text="clr-namespace:Para.UI.Text"
         xmlns:local="clr-namespace:Para"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="ParaUI" Height="450" Width="800">
     <Grid Background="Black">
-        <control:TextBox Height="30" Width="600" Background="Gray"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="49*"/>
+            <ColumnDefinition Width="351*"/>
+        </Grid.ColumnDefinitions>
+        <control:TextBox Height="30" Width="600" Background="Gray" Grid.Column="1" Margin="2,202,100,202"/>
     </Grid>
 </Window>

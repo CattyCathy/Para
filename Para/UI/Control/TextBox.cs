@@ -19,87 +19,36 @@ namespace Para.UI.Control
     /// </summary>
     public class TextBox : BeatSyncedControl
     {
+        // Members
         public Caret _caret = new();
+        public StackPanel? _charPanel;
+        public Canvas? _animationLayer;
+
+        // Local values for public properties
         protected string _text = string.Empty;
+        protected int _caretIndex = 0;
+
+        // Runtime values
         protected List<SpriteChar> _spriteTexts = [];
+        protected int? _lastRemovedCharIndex = null;
+        protected HashSet<int>? _lastRemovedCharIndices = null;
+        protected int _selectionStart = -1;
+        protected int _selectionEnd = -1;
 
-        private StackPanel? _charPanel;
-        private Canvas? _animationLayer;
+        // Temporary storage for original values
+        public double CaretOriginalWidth;
+        public Brush CaretOriginalHighColor;
+        public Brush CaretOriginalLowColor;
 
-        private int? _lastRemovedCharIndex = null;
-        private HashSet<int>? _lastRemovedCharIndices = null;
+        // Values for operation status
+        protected int _SelectAnchor = -1;
+        protected bool _isMouseSelecting = false;//Changing selecting zone using mouse
+        protected bool _isKeyboardSelecting = false;//Changing selecting zone using keyboard
+        
+        // Generated properties
+        public bool HasSelection => _selectionStart >= 0 && _selectionEnd > _selectionStart;
 
-        private int _caretIndex = 0;
-
-        private int _selectionStart = -1;
-        private int _selectionEnd = -1;
-        private readonly Brush _selectionCaretBrush = new SolidColorBrush(Color.FromArgb(0x88, 0x33, 0x99, 0xFF));
-        private double _caretOriginalWidth;
-        private Brush _caretOriginalHighColor;
-        private Brush _caretOriginalLowColor;
-        private bool _isMouseSelecting = false;//Changing selecting zone using mouse
-        private bool _isKeyboardSelecting = false;//Changing selecting zone using keyboard
-        private int _SelectAnchor = -1;
-        private bool HasSelection => _selectionStart >= 0 && _selectionEnd > _selectionStart;
-
-        private void CancelSelection()
-        {
-            _selectionStart = -1;
-            _selectionEnd = -1;
-            _isKeyboardSelecting = false;
-            _isMouseSelecting = false;
-            RestoreCaret();
-            UpdateSelectionHighlight();
-        }
-        private void DeleteSelection()
-        {
-            if (!HasSelection) return;
-            int start = _selectionStart;
-            int length = _selectionEnd - _selectionStart;
-            if (length > 0)
-            {
-                _lastRemovedCharIndices = [];
-                for (int i = 0; i < length; i++)
-                    _lastRemovedCharIndices.Add(start + i);
-            }
-            Text = Text.Remove(start, length);
-            RestoreCaret();
-            CaretIndex = start;
-            CancelSelection();
-        }
-        private void ReplaceSelection(string newText)
-        {
-            if (!HasSelection)
-            {
-                Text = Text.Insert(CaretIndex, newText);
-                CaretIndex += newText.Length;
-            }
-            else
-            {
-                int start = _selectionStart;
-                int length = _selectionEnd - _selectionStart;
-                Text = Text.Remove(start, length).Insert(start, newText);
-                CaretIndex = start + newText.Length;
-                CancelSelection();
-            }
-        }
-        private void CopySelection()
-        {
-            if (HasSelection)
-            {
-                Clipboard.SetText(Text[_selectionStart.._selectionEnd]);
-            }
-        }
-
-        private void CutSelection()
-        {
-            if (HasSelection)
-            {
-                CopySelection();
-                DeleteSelection();
-            }
-        }
-
+        // Public settable properties
         public int CaretIndex
         {
             get => _caretIndex;
@@ -113,7 +62,6 @@ namespace Para.UI.Control
                 }
             }
         }
-
         public string Text
         {
             get => _text;
@@ -139,25 +87,43 @@ namespace Para.UI.Control
             Loaded += TextBox_Loaded;
             Focusable = true;
             FocusVisualStyle = null;
-            _caretOriginalHighColor = DesignDetail.Control.Caret.CaretBrushHigh;
-            _caretOriginalLowColor = DesignDetail.Control.Caret.CaretBrushLow;
+            CaretOriginalHighColor = DesignDetail.Control.Caret.CaretBrushHigh;
+            CaretOriginalLowColor = DesignDetail.Control.Caret.CaretBrushLow;
             Padding = DesignDetail.Control.TextBox.Padding;
             this.PreviewKeyDown += TextBox_PreviewKeyDown;
             this.PreviewKeyUp += TextBox_PreviewKeyUp;
             this.PreviewTextInput += TextBox_PreviewTextInput;
         }
-
-        private void TextBox_PreviewKeyUp(object sender, KeyEventArgs e)
+        protected void TextBox_Loaded(object sender, RoutedEventArgs e)
         {
-            if (e.Key == Key.LeftShift || e.Key == Key.RightShift)
-            {
-                if (!HasSelection)
-                {
-                    _isKeyboardSelecting = false;
-                }
-            }
+            //Set TextBox properties
+            Background = DesignDetail.Control.TextBox.BackgroundBrush;
+            Foreground = DesignDetail.Control.TextBox.ForegroundBrush;
+
+            //Set caret properties
+            _caret.CaretBrushHigh = DesignDetail.Control.Caret.CaretBrushHigh;
+            _caret.CaretBrushLow = DesignDetail.Control.Caret.CaretBrushLow;
+            _caret.Width = DesignDetail.Control.TextBox.CaretWidth;
+            _caret.Height = (double)this.FontSize;
+        }
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            //Get controls
+            _charPanel = GetTemplateChild("PART_CharPanel") as StackPanel;
+            _animationLayer = GetTemplateChild("PART_AnimationLayer") as Canvas;
+
+            _animationLayer?.Children.Add(_caret);
+            _caret.VerticalAlignment = VerticalAlignment.Center;
+            _caret.Margin = new Thickness(0, DesignDetail.Control.TextBox.Padding.Top, 0, DesignDetail.Control.TextBox.Padding.Bottom);
+            UpdateSpriteChars();
         }
 
+
+        // Events
+
+        // Events: Focus
         protected override void OnGotFocus(RoutedEventArgs e)
         {
             base.OnGotFocus(e);
@@ -169,7 +135,8 @@ namespace Para.UI.Control
             _caret.Visibility = Visibility.Collapsed;
         }
 
-        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        // Events: Keyboard
+        protected void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
             {
@@ -281,14 +248,31 @@ namespace Para.UI.Control
                 e.Handled = true;
             }
         }
+        protected void TextBox_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.LeftShift || e.Key == Key.RightShift)
+            {
+                if (!HasSelection)
+                {
+                    _isKeyboardSelecting = false;
+                }
+            }
+        }
+        protected void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            RestoreCaret();
+            ReplaceSelection(e.Text);
+            e.Handled = true;
+        }
 
+        // Events: Mouse
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
             if (!HasSelection)
             {
-                _caretOriginalWidth = _caret.Width;
-                _caretOriginalHighColor = _caret.CaretBrushHigh;
-                _caretOriginalLowColor = _caret.CaretBrushLow;
+                CaretOriginalWidth = _caret.Width;
+                CaretOriginalHighColor = _caret.CaretBrushHigh;
+                CaretOriginalLowColor = _caret.CaretBrushLow;
             }
 
             base.OnMouseDown(e);
@@ -320,6 +304,18 @@ namespace Para.UI.Control
                 UpdateCaretPosition();
             }
         }
+        protected override void OnMouseUp(MouseButtonEventArgs e)
+        {
+            base.OnMouseUp(e);
+            if (_isMouseSelecting)
+            {
+                _isMouseSelecting = false;
+                ReleaseMouseCapture();
+                //Cancel selection if the start and end are the same
+                if (_selectionStart == _selectionEnd)
+                    CancelSelection();
+            }
+        }
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
@@ -336,91 +332,11 @@ namespace Para.UI.Control
             }
         }
 
-        protected override void OnMouseUp(MouseButtonEventArgs e)
-        {
-            base.OnMouseUp(e);
-            if (_isMouseSelecting)
-            {
-                _isMouseSelecting = false;
-                ReleaseMouseCapture();
-                //Cancel selection if the start and end are the same
-                if (_selectionStart == _selectionEnd)
-                    CancelSelection();
-            }
-        }
 
-        private int GetCaretIndexFromPoint(Point mousePosition)
-        {
-            if (_charPanel == null || _spriteTexts.Count == 0)
-                return 0;
+        // Methods
 
-            Point panelPoint = mousePosition;
-            if (_animationLayer != null)
-                panelPoint = _animationLayer.TransformToVisual(_charPanel).Transform(mousePosition);
-
-            double x = panelPoint.X;
-            int closestIndex = 0;
-            double minDist = double.MaxValue;
-
-            for (int i = 0; i <= _spriteTexts.Count; i++)
-            {
-                double charX = 0;
-                if (i < _spriteTexts.Count)
-                {
-                    var charElem = _spriteTexts[i];
-                    charX = charElem.TransformToAncestor(_charPanel).Transform(new Point(0, 0)).X;
-                }
-                else if (_spriteTexts.Count > 0)
-                {
-                    var lastChar = _spriteTexts[^1];
-                    charX = lastChar.TransformToAncestor(_charPanel).Transform(new Point(0, 0)).X + lastChar.ActualWidth;
-                }
-
-                double dist = Math.Abs(x - charX);
-                if (dist < minDist)
-                {
-                    minDist = dist;
-                    closestIndex = i;
-                }
-            }
-            return closestIndex;
-        }
-
-        private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
-        {
-            RestoreCaret();
-            ReplaceSelection(e.Text);
-            e.Handled = true;
-        }
-
-        private void TextBox_Loaded(object sender, RoutedEventArgs e)
-        {
-            //Set TextBox properties
-            Background = DesignDetail.Control.TextBox.BackgroundBrush;
-            Foreground = DesignDetail.Control.TextBox.ForegroundBrush;
-
-            //Set caret properties
-            _caret.CaretBrushHigh = DesignDetail.Control.Caret.CaretBrushHigh;
-            _caret.CaretBrushLow = DesignDetail.Control.Caret.CaretBrushLow;
-            _caret.Width = DesignDetail.Control.TextBox.CaretWidth;
-            _caret.Height = (double)this.FontSize;
-        }
-
-        public override void OnApplyTemplate()
-        {
-            base.OnApplyTemplate();
-
-            //Get controls
-            _charPanel = GetTemplateChild("PART_CharPanel") as StackPanel;
-            _animationLayer = GetTemplateChild("PART_AnimationLayer") as Canvas;
-
-            _animationLayer?.Children.Add(_caret);
-            _caret.VerticalAlignment = VerticalAlignment.Center;
-            _caret.Margin = new Thickness(0, DesignDetail.Control.TextBox.Padding.Top, 0, DesignDetail.Control.TextBox.Padding.Bottom);
-            UpdateSpriteChars();
-        }
-
-        private void UpdateSpriteChars()
+        // Methods: Visual
+        public void UpdateSpriteChars()
         {
             if (_charPanel == null || _animationLayer == null) return;
 
@@ -530,7 +446,8 @@ namespace Para.UI.Control
             UpdateCaretPosition();
         }
 
-        private static List<char> LongestCommonSubsequence(List<char> a, List<char> b)
+        // Methods: Helper
+        protected static List<char> LongestCommonSubsequence(List<char> a, List<char> b)
         {
             int[,] dp = new int[a.Count + 1, b.Count + 1];
             for (int i = 0; i < a.Count; i++)
@@ -557,59 +474,120 @@ namespace Para.UI.Control
             return lcs;
         }
 
-        private void UpdateCaretPosition()
+        // Methods: Selection
+        /// <summary>
+        /// Set the selection range of the text box, caret will automatically cover the selected text.
+        /// </summary>
+        /// <param name="fromIndex">Index of the character that begins in the selection.</param>
+        /// <param name="toIndex">Index of the character that ends in the selection.</param>
+        public void Select(int fromIndex, int toIndex)
         {
-            if (_animationLayer == null) return;
+            _selectionStart = Math.Max(0, Math.Min(fromIndex, toIndex));
+            _selectionEnd = Math.Min(Text.Length, Math.Max(fromIndex, toIndex));
 
-            double caretX = 0;
-            double caretY = 0;
-
-            if (CaretIndex > 0 && !string.IsNullOrEmpty(Text))
+            if (HasSelection)
             {
-                string textBeforeCaret = Text[..CaretIndex];
-
-                var formattedText = new FormattedText(
-                    textBeforeCaret,
-                    System.Globalization.CultureInfo.CurrentUICulture,
-                    FlowDirection.LeftToRight,
-                    new Typeface(this.FontFamily, this.FontStyle, this.FontWeight, this.FontStretch),
-                    this.FontSize,
-                    this.Foreground,
-                    VisualTreeHelper.GetDpi(this).PixelsPerDip
-                );
-
-                caretX = formattedText.WidthIncludingTrailingWhitespace;
-            }
-
-            if (_charPanel != null)
-            {
-                var panelPoint = _charPanel.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
-                caretX += panelPoint.X;
-                caretY = panelPoint.Y;
-            }
-
-            if (_animationLayer != null && _caret != null && !HasSelection)
-            {
-                DoubleAnimation? xAnimation = null;
-                xAnimation = new DoubleAnimation(_caret.TransformToVisual(_animationLayer).Transform(new Point(0, 0)).X, caretX, new Duration(TimeSpan.FromSeconds(DesignDetail.Control.TextBox.CaretMovementInterval)))
-                {
-                    FillBehavior = FillBehavior.Stop,
-                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
-                };
-                xAnimation.Completed += (s, e) =>
-                {
-                    Canvas.SetLeft(_caret, caretX);
-                };
-                _caret.BeginAnimation(Canvas.LeftProperty, xAnimation);
+                PlaySelectionCaretAnimation();
             }
             else
             {
-                Canvas.SetLeft(_caret, caretX);
+                RestoreCaret();
             }
-            Canvas.SetTop(_caret, caretY);
-            Panel.SetZIndex(_caret, 200);
+        }
+        protected void CancelSelection()
+        {
+            _selectionStart = -1;
+            _selectionEnd = -1;
+            _isKeyboardSelecting = false;
+            _isMouseSelecting = false;
+            RestoreCaret();
+            PlaySelectionCaretAnimation();
+        }
+        protected void DeleteSelection()
+        {
+            if (!HasSelection) return;
+            int start = _selectionStart;
+            int length = _selectionEnd - _selectionStart;
+            if (length > 0)
+            {
+                _lastRemovedCharIndices = [];
+                for (int i = 0; i < length; i++)
+                    _lastRemovedCharIndices.Add(start + i);
+            }
+            Text = Text.Remove(start, length);
+            RestoreCaret();
+            CaretIndex = start;
+            CancelSelection();
+        }
+        protected void ReplaceSelection(string newText)
+        {
+            if (!HasSelection)
+            {
+                Text = Text.Insert(CaretIndex, newText);
+                CaretIndex += newText.Length;
+            }
+            else
+            {
+                int start = _selectionStart;
+                int length = _selectionEnd - _selectionStart;
+                Text = Text.Remove(start, length).Insert(start, newText);
+                CaretIndex = start + newText.Length;
+                CancelSelection();
+            }
+        }
+        protected void CopySelection()
+        {
+            if (HasSelection)
+            {
+                Clipboard.SetText(Text[_selectionStart.._selectionEnd]);
+            }
+        }
+        protected void CutSelection()
+        {
+            if (HasSelection)
+            {
+                CopySelection();
+                DeleteSelection();
+            }
         }
 
+        // Methods: Caret
+        public int GetCaretIndexFromPoint(Point mousePosition)
+        {
+            if (_charPanel == null || _spriteTexts.Count == 0)
+                return 0;
+
+            Point panelPoint = mousePosition;
+            if (_animationLayer != null)
+                panelPoint = _animationLayer.TransformToVisual(_charPanel).Transform(mousePosition);
+
+            double x = panelPoint.X;
+            int closestIndex = 0;
+            double minDist = double.MaxValue;
+
+            for (int i = 0; i <= _spriteTexts.Count; i++)
+            {
+                double charX = 0;
+                if (i < _spriteTexts.Count)
+                {
+                    var charElem = _spriteTexts[i];
+                    charX = charElem.TransformToAncestor(_charPanel).Transform(new Point(0, 0)).X;
+                }
+                else if (_spriteTexts.Count > 0)
+                {
+                    var lastChar = _spriteTexts[^1];
+                    charX = lastChar.TransformToAncestor(_charPanel).Transform(new Point(0, 0)).X + lastChar.ActualWidth;
+                }
+
+                double dist = Math.Abs(x - charX);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    closestIndex = i;
+                }
+            }
+            return closestIndex;
+        }
         public void MoveCaret(Point mousePosition)
         {
             if (_charPanel == null || _spriteTexts.Count == 0)
@@ -653,22 +631,60 @@ namespace Para.UI.Control
             CaretIndex = closestIndex;
             RestoreCaret();
         }
-
-        public void Select(int fromIndex, int toIndex)
+        protected void UpdateCaretPosition()
         {
-            _selectionStart = Math.Max(0, Math.Min(fromIndex, toIndex));
-            _selectionEnd = Math.Min(Text.Length, Math.Max(fromIndex, toIndex));
+            if (_animationLayer == null) return;
 
-            if (HasSelection)
+            double caretX = 0;
+            double caretY = 0;
+
+            if (CaretIndex > 0 && !string.IsNullOrEmpty(Text))
             {
-                UpdateSelectionHighlight();
+                string textBeforeCaret = Text[..CaretIndex];
+
+                var formattedText = new FormattedText(
+                    textBeforeCaret,
+                    System.Globalization.CultureInfo.CurrentUICulture,
+                    FlowDirection.LeftToRight,
+                    new Typeface(this.FontFamily, this.FontStyle, this.FontWeight, this.FontStretch),
+                    this.FontSize,
+                    this.Foreground,
+                    VisualTreeHelper.GetDpi(this).PixelsPerDip
+                );
+
+                caretX = formattedText.WidthIncludingTrailingWhitespace;
+            }
+
+            if (_charPanel != null)
+            {
+                var panelPoint = _charPanel.TransformToVisual(_animationLayer).Transform(new Point(0, 0));
+                caretX += panelPoint.X;
+                caretY = panelPoint.Y;
+            }
+
+            if (_animationLayer != null && _caret != null && !HasSelection)
+            {
+                DoubleAnimation? xAnimation = null;
+                xAnimation = new DoubleAnimation(_caret.TransformToVisual(_animationLayer).Transform(new Point(0, 0)).X, caretX, new Duration(TimeSpan.FromSeconds(DesignDetail.Control.TextBox.CaretMovementInterval)))
+                {
+                    FillBehavior = FillBehavior.Stop,
+                    EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
+                };
+                xAnimation.Completed += (s, e) =>
+                {
+                    Canvas.SetLeft(_caret, caretX);
+                };
+                _caret.BeginAnimation(Canvas.LeftProperty, null);
+                _caret.BeginAnimation(Canvas.LeftProperty, xAnimation);
             }
             else
             {
-                RestoreCaret();
+                Canvas.SetLeft(_caret, caretX);
             }
+            Canvas.SetTop(_caret, caretY);
+            Panel.SetZIndex(_caret, 200);
         }
-        private void UpdateSelectionHighlight()
+        protected void PlaySelectionCaretAnimation()
         {
             if (_animationLayer == null) return;
 
@@ -689,8 +705,8 @@ namespace Para.UI.Control
                     if (i == start)
                     {
                         newStartX = sprite.TransformToVisual(_animationLayer).Transform(new Point(0, 0)).X;
-                        _caret.CaretBrushHigh = _selectionCaretBrush;
-                        _caret.CaretBrushLow = _selectionCaretBrush;
+                        _caret.CaretBrushHigh = DesignDetail.Control.TextBox.SelectionCaretBrush;
+                        _caret.CaretBrushLow = DesignDetail.Control.TextBox.SelectionCaretBrush;
                     }
                     selectionWidth += sprite.ActualWidth;
                 }
@@ -743,26 +759,24 @@ namespace Para.UI.Control
                 //}
             }
         }
-
-        private void RestoreCaret()
+        protected void RestoreCaret()
         {
-            _caret.CaretBrushHigh = _caretOriginalHighColor ?? DesignDetail.Control.Caret.CaretBrushHigh;
-            _caret.CaretBrushLow = _caretOriginalLowColor ?? DesignDetail.Control.Caret.CaretBrushLow;
+            _caret.CaretBrushHigh = CaretOriginalHighColor ?? DesignDetail.Control.Caret.CaretBrushHigh;
+            _caret.CaretBrushLow = CaretOriginalLowColor ?? DesignDetail.Control.Caret.CaretBrushLow;
             DoubleAnimation? widthAnimation = null;
-            widthAnimation = new DoubleAnimation(_caret.ActualWidth, _caretOriginalWidth, new Duration(TimeSpan.FromSeconds(DesignDetail.Control.TextBox.CaretMovementInterval)))
+            widthAnimation = new DoubleAnimation(_caret.ActualWidth, CaretOriginalWidth, new Duration(TimeSpan.FromSeconds(DesignDetail.Control.TextBox.CaretMovementInterval)))
             {
                 FillBehavior = FillBehavior.Stop,
                 EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
             };
             widthAnimation.Completed += (s, e) =>
             {
-                _caret.Width = _caretOriginalWidth;
+                _caret.Width = CaretOriginalWidth;
             };
             _caret.BeginAnimation(WidthProperty, widthAnimation);
 
             _caret.Visibility = Visibility.Visible;
             UpdateCaretPosition();
         }
-
     }
 }
