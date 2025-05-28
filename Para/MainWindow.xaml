@@ -10,10 +10,6 @@
         mc:Ignorable="d"
         Title="ParaUI" Height="450" Width="800">
     <Grid Background="Black">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="49*"/>
-            <ColumnDefinition Width="351*"/>
-        </Grid.ColumnDefinitions>
-        <control:TextBox Height="30" Width="600" Background="Gray" Grid.Column="1" Margin="2,202,100,202"/>
+        <control:TextBox Height="30" Width="600" Background="Gray"/>
     </Grid>
 </Window>
