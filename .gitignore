@@ -8,4 +8,6 @@ Para/.vs/
 Para/.git/
 Para/bin/
 Para/obj/
+Para/bin
+Para/obj
 .gitignore
