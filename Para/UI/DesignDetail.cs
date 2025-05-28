@@ -65,7 +65,7 @@ namespace Para.UI
         public static class Text
         {
             public static readonly FontFamily DefaultFontFamily = new("Segoe UI");
-            public static class SpriteText
+            public static class SpriteChar
             {
                 public static readonly bool HasShadow = true;
                 public static readonly Color ShadowColor = Color.FromArgb(0xFF, 0x00, 0x00, 0x00);

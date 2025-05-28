@@ -421,9 +421,9 @@ namespace Para.UI.Control
                         Char = Text[i],
                         FontSize = this.FontSize,
                         Foreground = this.Foreground,
-                        HasShadow = DesignDetail.Text.SpriteText.HasShadow,
-                        ShadowColor = DesignDetail.Text.SpriteText.ShadowColor,
-                        ShadowOffset = DesignDetail.Text.SpriteText.ShadowOffset
+                        HasShadow = DesignDetail.Text.SpriteChar.HasShadow,
+                        ShadowColor = DesignDetail.Text.SpriteChar.ShadowColor,
+                        ShadowOffset = DesignDetail.Text.SpriteChar.ShadowOffset
                     };
                     _charPanel.Children.Insert(i, spriteChar);
                     newSpriteList.Add(spriteChar);

@@ -16,14 +16,15 @@ namespace Para.UI.Text
     /// </summary>
     public class SpriteChar : BeatSyncedControl
     {
-        public bool HasShadow;
-        public System.Windows.Media.Color ShadowColor;
-        public Vector2 ShadowOffset;
         private char _char = ' ';
 
         private double _interval;
         private DateTime _animationStartTime = DateTime.Now;
 
+        // Public settable properties
+        public bool HasShadow;
+        public System.Windows.Media.Color ShadowColor;
+        public Vector2 ShadowOffset;
         public char Char
         {
             get => _char;
@@ -49,7 +50,7 @@ namespace Para.UI.Text
         {
             FontFamily = (Parent as System.Windows.Controls.Control ?? this).FontFamily;
             _animationStartTime = DateTime.Now;
-            _interval = DesignDetail.Text.SpriteText.CreateInterval;
+            _interval = DesignDetail.Text.SpriteChar.CreateInterval;
             Focusable = false;
 
             Loaded += SpriteText_Loaded;
@@ -83,7 +84,7 @@ namespace Para.UI.Text
         private void SpriteText_Unloaded(object sender, RoutedEventArgs e)
         {
             _animationStartTime = DateTime.Now;
-            _interval = DesignDetail.Text.SpriteText.DestroyInterval;
+            _interval = DesignDetail.Text.SpriteChar.DestroyInterval;
             AnimateAppearance(false);
         }
 
@@ -111,7 +112,7 @@ namespace Para.UI.Text
             DoubleAnimation? yAnimation = null;
             if (!appearing)
             {
-                yAnimation = new DoubleAnimation(0, DesignDetail.Text.SpriteText.DropEnd, duration)
+                yAnimation = new DoubleAnimation(0, DesignDetail.Text.SpriteChar.DropEnd, duration)
                 {
                     FillBehavior = FillBehavior.Stop,
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
