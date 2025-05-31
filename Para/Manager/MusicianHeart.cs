@@ -14,7 +14,7 @@ namespace Para.Core
         /// <summary>
         /// Artificial heart beat interval in seconds. For debugging or when no media source.
         /// </summary>
-        public double _artificialInterval { get; set; } = 0.25;
+        public double _artificialInterval { get; set; } = 0.333;
 
         private CancellationTokenSource? _cts;
 

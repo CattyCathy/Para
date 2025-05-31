@@ -1,120 +1,134 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Para.UI.Container;
+using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
+using static Para.UI.DesignDetail.Control;
 
 namespace Para.UI.Control
 {
-    public class ScrollBar : System.Windows.Controls.Control
+    public class ScrollBar : System.Windows.Controls.Primitives.ScrollBar
     {
-        // Public settable properties
-        public Brush NormalColor = DesignDetail.Control.ScrollBar.BackgroundBrushNormal;
-        public Brush HoverColor = DesignDetail.Control.ScrollBar.BackgroundBrushHover;
-        public Brush PressedColor = DesignDetail.Control.ScrollBar.BackgroundBrushPressed;
-        private bool _isMouseOver = false;
-        private bool _isPressed = false;
-        private DateTime _lastAnimationStartTile = DateTime.Now;
-        private double _animationProgress;
-        private Color _startColor;
-        private Color _targetColor;
+        // Members
+        private ScrollBarThumb? _thumb;
+        private FrameworkElement? _track;
+
+        // Event Properties
+        public event EventHandler? PreviewThumbLeftButtonDown;
 
         static ScrollBar()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(
-                typeof(ScrollBar),
-                new FrameworkPropertyMetadata(typeof(ScrollBar)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(ScrollBar), new FrameworkPropertyMetadata(typeof(ScrollBar)));
         }
 
         public ScrollBar()
         {
-            Loaded += ScrollBar_Loaded;
-            MouseEnter += ScrollBar_MouseEnter;
-            MouseLeave += ScrollBar_MouseLeave;
-            PreviewMouseLeftButtonDown += ScrollBar_PreviewMouseLeftButtonDown;
-            PreviewMouseLeftButtonUp += ScrollBar_PreviewMouseLeftButtonUp;
+            
         }
 
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
 
-        private void ScrollBar_Loaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-            Background = NormalColor;
-        }
-        private void ScrollBar_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            _isMouseOver = true;
-            if (!_isPressed)
+            _thumb = GetTemplateChild("PART_Thumb") as ScrollBarThumb;
+            _track = GetTemplateChild("PART_Track") as FrameworkElement;
+
+            if (_thumb != null)
             {
-                AnimateBackgroundTo(HoverColor);
-            }
-        }
-        private void ScrollBar_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            _isMouseOver = false;
-            if (!_isPressed)
-            {
-                AnimateBackgroundTo(NormalColor);
-            }
-        }
-
-        private void ScrollBar_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            _isPressed = true;
-            AnimateBackgroundTo(PressedColor);
-        }
-        private void ScrollBar_PreviewMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            _isPressed = false;
-            AnimateBackgroundTo(_isMouseOver ? HoverColor : NormalColor);
-        }
-
-        protected Color BrushToColor(Brush brush)
-        {
-            if (brush == null)
-            {
-                return Colors.Transparent;
+                _thumb.DragDelta += Thumb_DragDelta;
+                _thumb.PreviewMouseLeftButtonDown += _thumb_PreviewMouseLeftButtonDown;
             }
 
-            if (brush is SolidColorBrush solidBrush)
-                return solidBrush.Color;
-
-            if (brush is GradientBrush gradientBrush && gradientBrush.GradientStops.Count > 0)
-                return gradientBrush.GradientStops[0].Color;
-
-            return Colors.Red;
+            UpdateThumb();
         }
 
-        public void OnRendering(object? sender, EventArgs e)
+
+        // Events
+
+        // Events: Thumb drag
+        /// <summary>
+        /// Update thumb value.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Thumb_DragDelta(object sender, DragDeltaEventArgs e)
         {
-            var elapsed = (DateTime.Now - _lastAnimationStartTile).TotalSeconds;
-            _animationProgress = Math.Min(1.0, elapsed / DesignDetail.Control.ScrollBar.BackgroundBrushChangeInterval);
-            Background = new SolidColorBrush(LerpColor(_startColor, _targetColor, _animationProgress));
-            if (_animationProgress >= 1.0)
+            if (_thumb == null || _track == null) return;
+
+            double trackLength = Orientation == Orientation.Vertical ? _track.ActualHeight : _track.ActualWidth;
+            double thumbLength = Orientation == Orientation.Vertical ? _thumb.ActualHeight : _thumb.ActualWidth;
+            double range = Maximum - Minimum;
+            double maxOffset = trackLength - thumbLength;
+
+            if (maxOffset <= 0) return;
+
+            double offset = Orientation == Orientation.Vertical
+                ? Canvas.GetTop(_thumb) + e.VerticalChange
+                : Canvas.GetLeft(_thumb) + e.HorizontalChange;
+
+            offset = Math.Max(0, Math.Min(maxOffset, offset));
+            double newValue = Minimum + (offset / maxOffset) * range;
+            Value = Math.Max(Minimum, Math.Min(Maximum, newValue));
+        }
+
+
+        // Methods
+
+        // Mehtods: Visual
+        /// <summary>
+        /// Update the thumb position and size based on the current value, minimum, maximum, and viewport size.
+        /// </summary>
+        private void UpdateThumb()
+        {
+            if (_thumb == null || _track == null) return;
+
+            double range = Maximum - Minimum;
+            double viewport = ViewportSize;
+            double trackLength = Orientation == Orientation.Vertical ? _track.ActualHeight : _track.ActualWidth;
+
+            if (range <= 0 || trackLength <= 0 || viewport <= 0)
             {
-                CompositionTarget.Rendering -= OnRendering;
+                _thumb.Visibility = Visibility.Collapsed;
+                return;
+            }
+            _thumb.Visibility = Visibility.Visible;
+
+            double thumbLength = Math.Max( Math.Max(20, trackLength * viewport / (range + viewport)),DesignDetail.Control.ScrollBar.MinimumLength);
+            if (Orientation == Orientation.Vertical)
+            {
+                _thumb.Height = thumbLength;
+                double maxOffset = trackLength - thumbLength;
+                double offset = maxOffset * (Value - Minimum) / (range == 0 ? 1 : range);
+                Canvas.SetTop(_thumb, offset);
+            }
+            else
+            {
+                _thumb.Width = thumbLength;
+                double maxOffset = trackLength - thumbLength;
+                double offset = maxOffset * (Value - Minimum) / (range == 0 ? 1 : range);
+                Canvas.SetLeft(_thumb, offset);
             }
         }
 
-        private void AnimateBackgroundTo(Brush targerBrush)
+        // Methods: Mouse button
+        public virtual void _thumb_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            _lastAnimationStartTile = DateTime.Now;
-            _startColor = BrushToColor(Background);
-            _targetColor = BrushToColor(targerBrush);
-            CompositionTarget.Rendering -= OnRendering;
-            CompositionTarget.Rendering += OnRendering;
+            PreviewThumbLeftButtonDown?.Invoke(sender, e);
         }
 
-        private static Color LerpColor(Color from, Color to, double t)
+        // Methods: Size changed
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
-            byte a = (byte)(from.A + (to.A - from.A) * t);
-            byte r = (byte)(from.R + (to.R - from.R) * t);
-            byte g = (byte)(from.G + (to.G - from.G) * t);
-            byte b = (byte)(from.B + (to.B - from.B) * t);
-            return Color.FromArgb(a, r, g, b);
+            base.OnRenderSizeChanged(sizeInfo);
+            UpdateThumb();
+        }
+
+        // Methods: Value changed
+        protected override void OnValueChanged(double oldValue, double newValue)
+        {
+            base.OnValueChanged(oldValue, newValue);
+            UpdateThumb();
         }
     }
 }

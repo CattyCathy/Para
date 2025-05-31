@@ -6,10 +6,35 @@
         xmlns:ui="clr-namespace:Para.UI"
         xmlns:control="clr-namespace:Para.UI.Control"
         xmlns:text="clr-namespace:Para.UI.Text"
+        xmlns:container ="clr-namespace:Para.UI.Container"
         xmlns:local="clr-namespace:Para"
         mc:Ignorable="d"
         Title="ParaUI" Height="450" Width="800">
     <Grid Background="Black">
         <control:TextBox Height="30" Width="600" Background="Gray"/>
+        <container:ScrollView x:Name="scrollContainer">
+            <Grid>
+                <Rectangle Height="1600" Width="500">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush>
+                            <LinearGradientBrush.GradientStops>
+                                <GradientStop Color="#FF0000" Offset="0"/>
+                                <GradientStop Color="#FF00FF" Offset="0.5"/>
+                                <GradientStop Color="#0000FF" Offset="1"/>
+                            </LinearGradientBrush.GradientStops>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+                <TextBox Margin="0 200 0 0">
+                    1
+                    1
+                    1
+                    1
+                    1
+                    1
+                </TextBox>
+            </Grid>
+        </container:ScrollView>
+        <control:ScrollBar Height="80" Width="5"/>
     </Grid>
 </Window>

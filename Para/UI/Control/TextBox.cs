@@ -377,7 +377,7 @@ namespace Para.UI.Control
                 }
             }
 
-            //Deletion animation
+            // Deletion animation
             var removePositions = new Dictionary<SpriteChar, Point>();
             foreach (var sc in toRemove)
             {
@@ -401,7 +401,7 @@ namespace Para.UI.Control
                 sc.PlayDeleteAnimation(() => _animationLayer.Children.Remove(sc));
             }
 
-            //Insert new char to avoid unexpected animation
+            // Insert new char to avoid unexpected animation
             var newSpriteList = new List<SpriteChar>();
             int spriteIndex = 0, lcsIndex2 = 0;
             for (int i = 0; i < Text.Length; i++)
@@ -415,7 +415,7 @@ namespace Para.UI.Control
                 }
                 else
                 {
-                    //Added char
+                    // Added char
                     var spriteChar = new SpriteChar
                     {
                         Char = Text[i],
