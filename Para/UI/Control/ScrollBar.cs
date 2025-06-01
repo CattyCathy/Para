@@ -14,8 +14,53 @@ namespace Para.UI.Control
         private ScrollBarThumb? _thumb;
         private FrameworkElement? _track;
 
+        // Local values for public properties
+        private double _thumbWidth = DesignDetail.Control.ScrollBar.ThumbWidth;
+        private double _trackWidth = DesignDetail.Control.ScrollBar.TrackWidth;
+
         // Event Properties
         public event EventHandler? PreviewThumbLeftButtonDown;
+
+
+
+        // Public settable properties
+        public double ThumbWidth
+        {
+            get => _thumbWidth;
+            set
+            {
+                if (_thumb != null)
+                {
+                    if (Orientation == Orientation.Vertical)
+                    {
+                        _thumb.Width = value;
+                    }
+                    else
+                    {
+                        _thumb.Height = value;
+                    }
+                }
+            }
+        }
+
+        public double TrackWidth
+        {
+            get => _trackWidth;
+            set
+            {
+                if (this != null)
+                {
+                    if (Orientation == Orientation.Vertical)
+                    {
+                        Width = value;
+                    }
+                    else
+                    {
+                        Height = value;
+                    }
+                }
+            }
+        }
 
         static ScrollBar()
         {
@@ -38,6 +83,8 @@ namespace Para.UI.Control
             {
                 _thumb.DragDelta += Thumb_DragDelta;
                 _thumb.PreviewMouseLeftButtonDown += _thumb_PreviewMouseLeftButtonDown;
+                _thumb.Width = ThumbWidth;
+                Width = TrackWidth;
             }
 
             UpdateThumb();

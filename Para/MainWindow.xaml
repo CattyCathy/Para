@@ -11,29 +11,14 @@
         mc:Ignorable="d"
         Title="ParaUI" Height="450" Width="800">
     <Grid Background="Black">
-        <control:TextBox Height="30" Width="600" Background="Gray"/>
+
         <container:ScrollView x:Name="scrollContainer">
-            <Grid>
-                <Rectangle Height="1600" Width="500">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush>
-                            <LinearGradientBrush.GradientStops>
-                                <GradientStop Color="#FF0000" Offset="0"/>
-                                <GradientStop Color="#FF00FF" Offset="0.5"/>
-                                <GradientStop Color="#0000FF" Offset="1"/>
-                            </LinearGradientBrush.GradientStops>
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-                <TextBox Margin="0 200 0 0">
-                    1
-                    1
-                    1
-                    1
-                    1
-                    1
+            <StackPanel Background="Gray" HorizontalAlignment="Stretch">
+                <TextBox Margin="0 200 0 0" FontSize="50" Background="Transparent" BorderThickness="0" Foreground="White" HorizontalAlignment="Center">
+                    ParaUI
                 </TextBox>
-            </Grid>
+                <control:TextBox Height="30" Width="600" Background="Gray"/>
+            </StackPanel>
         </container:ScrollView>
         <control:ScrollBar Height="80" Width="5"/>
     </Grid>

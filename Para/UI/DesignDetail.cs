@@ -62,8 +62,9 @@ namespace Para.UI
             {
                 // Brush
                 public static readonly Brush BackgroundBrush = new SolidColorBrush(Color.FromArgb(0x20, 0xFF, 0xFF, 0xFF));
-
                 public static readonly double MinimumLength = 20;
+                public static readonly double ThumbWidth = 6;
+                public static readonly double TrackWidth = 8;
             }
         }
 
