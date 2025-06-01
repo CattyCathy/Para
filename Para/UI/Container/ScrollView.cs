@@ -38,16 +38,6 @@ namespace Para.UI.Container
 
         public ScrollView()
         {
-            SizeChanged += ScrollView_SizeChanged1;
-        }
-
-        private void ScrollView_SizeChanged1(object sender, SizeChangedEventArgs e)
-        {
-            if (_contentPresenter != null)
-            {
-                _contentPresenter.Width = e.NewSize.Width;
-                _contentPresenter.Height = e.NewSize.Height;
-            }
         }
 
         public override void OnApplyTemplate()
@@ -213,6 +203,11 @@ namespace Para.UI.Container
         private void ScrollView_SizeChanged(object? sender, SizeChangedEventArgs e)
         {
             UpdateScrollBar();
+            if (_contentPresenter != null)
+            {
+                _contentPresenter.Width = e.NewSize.Width;
+                _contentPresenter.Height = e.NewSize.Height;
+            }
         }
         private void ContentPresenter_SizeChanged(object? sender, SizeChangedEventArgs e)
         {
