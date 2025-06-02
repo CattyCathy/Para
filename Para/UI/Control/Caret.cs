@@ -47,7 +47,7 @@ namespace Para.UI.Control
         // Events: Rendering
         private void OnRendering(object? sender, EventArgs e)  
         {
-            var elapsed = (DateTime.Now - _lastBeatTime).TotalSeconds;
+            double elapsed = (DateTime.Now - _lastBeatTime).TotalSeconds;
             _beatProgress = Math.Min(1.0, elapsed / _interval);
 
             if (CaretBrushHigh is SolidColorBrush high && CaretBrushLow is SolidColorBrush low)

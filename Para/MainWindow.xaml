@@ -13,13 +13,22 @@
     <Grid Background="Black">
 
         <container:ScrollView x:Name="scrollContainer">
-            <StackPanel Background="Gray" HorizontalAlignment="Stretch">
-                <TextBox Margin="0 200 0 0" FontSize="50" Background="Transparent" BorderThickness="0" Foreground="White" HorizontalAlignment="Center">
+            <StackPanel Background="Gray">
+                <TextBox Margin="0 200 0 0" FontSize="50" 
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Foreground="White"
+                         HorizontalAlignment="Center"
+                         FontWeight="Bold">
                     ParaUI
                 </TextBox>
                 <control:TextBox Height="30" Width="600" Background="Gray"/>
+                <control:Button Background="Blue" Height="64" Width="240">
+                    <TextBlock>
+                para
+                    </TextBlock>
+                </control:Button>
             </StackPanel>
         </container:ScrollView>
-        <control:ScrollBar Height="80" Width="5"/>
     </Grid>
 </Window>
