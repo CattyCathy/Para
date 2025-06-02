@@ -23,9 +23,9 @@
                     ParaUI
                 </TextBox>
                 <control:TextBox Height="30" Width="600" Background="Gray"/>
-                <control:Button Background="Blue" Height="64" Width="240">
+                <control:Button Height="64" Width="240" Background="AliceBlue">
                     <TextBlock>
-                para
+                        Button
                     </TextBlock>
                 </control:Button>
             </StackPanel>

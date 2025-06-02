@@ -96,24 +96,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type control:Button}">
-                    <Grid>
-                        <Border x:Name="PART_Viewport"
-                            Background="{TemplateBinding Background}"
-                            ClipToBounds="True">
-                            <Grid x:Name="PART_ContentRoot"
-                              Background="Green" 
-                              MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Border, AncestorLevel=1}}"
-                              MinHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Border, AncestorLevel=1}}">
-                                <Viewbox x:Name="PART_Viewbox">
-                                    <ContentPresenter Content="{TemplateBinding Content}"/>
-                                </Viewbox>
-                            </Grid>
+                    <Canvas x:Name="PART_ContentRoot"
+                                  Margin="16 8">
+                        <Border x:Name="PART_AnimationLayer" Background="{TemplateBinding Background}"
+                                                                        CornerRadius="10">
+                            <Viewbox x:Name="PART_Viewbox" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Stretch="Uniform" >
+                                <Grid HorizontalAlignment="Stretch">
+                                    <ContentPresenter Content="{TemplateBinding Content}" Margin="4"/>
+                                </Grid>
+                            </Viewbox>
                         </Border>
-                        <control:ScrollBar x:Name="PART_VerticalScrollBar"
-                                     Orientation="Vertical"
-                                     VerticalAlignment="Stretch"
-                                     HorizontalAlignment="Right"/>
-                    </Grid>
+                    </Canvas>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

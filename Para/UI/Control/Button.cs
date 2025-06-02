@@ -12,16 +12,12 @@ namespace Para.UI.Control
     public class Button : System.Windows.Controls.ContentControl
     {
         // Members
-        private Grid? _contentRoot;
-        private ContentPresenter? _contentPresenter;
+        private Canvas? _contentRoot;
+        private Border? _animationLayer;
         private Viewbox? _viewbox;
 
         // Runtime values
         private bool _pressed = false;
-        private double _currentPressScaleProgress = 0;
-        private double _viewboxWidth;
-        private double _viewboxHeight;
-        private double _scaledRate = 0;
         private double _scaleStartValue;
         private DateTime _animationStartTime = DateTime.Now;
 
@@ -38,22 +34,32 @@ namespace Para.UI.Control
 
         public Button()
         {
+            Loaded += Button_Loaded;
             MouseEnter += Button_MouseEnter;
             MouseLeave += Button_MouseLeave;
             MouseLeftButtonDown += Button_MouseLeftButtonDown;
             MouseLeftButtonUp += Button_MouseLeftButtonUp;
         }
 
+        private void Button_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (_animationLayer != null && _contentRoot != null)
+            {
+                _animationLayer.Height = _contentRoot.ActualHeight;
+                _animationLayer.Width = _contentRoot.ActualWidth;
+            }
+        }
+
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
-            _contentRoot = GetTemplateChild("PART_ContentRoot") as Grid;
-            _contentPresenter = GetTemplateChild("PART_ContentPresenter") as ContentPresenter;
+            _contentRoot = GetTemplateChild("PART_ContentRoot") as Canvas;
+            _animationLayer = GetTemplateChild("PART_AnimationLayer") as Border;
             _viewbox = GetTemplateChild("PART_Viewbox") as Viewbox;
             if (_contentRoot != null)
             {
-                _contentRoot.Height = ActualHeight;
-                _contentRoot.Width = ActualWidth;
+                //_contentRoot.Height = ActualHeight;
+                //_contentRoot.Width = ActualWidth;
             }
         }
 
@@ -78,9 +84,9 @@ namespace Para.UI.Control
             }
             _pressed = true;
             _animationStartTime = DateTime.Now;
-            if (_viewbox != null)
+            if (_animationLayer != null && _contentRoot!= null)
             {
-                _scaleStartValue = (Height - _viewbox.Height) / (Height * PressScaleMaximumDecraseRate);
+                _scaleStartValue = (_contentRoot.ActualHeight - _animationLayer.Height) / (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate);
             }
             if (ClickMode == ClickMode.Press)
             {
@@ -99,9 +105,9 @@ namespace Para.UI.Control
             }
             _pressed = false;
             _animationStartTime = DateTime.Now;
-            if (_viewbox != null)
+            if (_animationLayer != null && _contentRoot != null)
             {
-                _scaleStartValue = (Height - _viewbox.Height) / (Height * PressScaleMaximumDecraseRate);
+                _scaleStartValue = (_contentRoot.ActualHeight - _animationLayer.Height) / (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate);
             }
             if (ClickMode == ClickMode.Release && IsMouseCaptured && _pressed)
             {
@@ -127,27 +133,26 @@ namespace Para.UI.Control
             if (_pressed)
             {
                 QuarticEase ease = new QuarticEase { EasingMode = EasingMode.EaseOut };
-                if (_viewbox != null)
+                if (_animationLayer != null && _contentRoot != null)
                 {
                     double scaleValue = ease.Ease(elapsed / PressScaleProgressFinishTimeSpan);
-                    _viewbox.Height = Height - (Height * PressScaleMaximumDecraseRate * scaleValue);
-                    _viewbox.Width = Width - (Width * PressScaleMaximumDecraseRate * scaleValue);
+                    _animationLayer.Height = _contentRoot.ActualHeight - (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate * scaleValue);
+                    _animationLayer.Width = _contentRoot.ActualWidth - (_contentRoot.ActualWidth * PressScaleMaximumDecraseRate * scaleValue);
+                    Canvas.SetLeft(_animationLayer, _contentRoot.ActualWidth * 0.5 - _animationLayer.ActualWidth * 0.5);
+                    Canvas.SetTop(_animationLayer, _contentRoot.ActualHeight * 0.5 - _animationLayer.ActualHeight * 0.5);
                 }
             }
             else
             {
-                ElasticEase ease = new ElasticEase { EasingMode = EasingMode.EaseOut };
-                if (_viewbox != null)
+                ElasticEase ease = new ElasticEase { EasingMode = EasingMode.EaseOut, Springiness = 1, Oscillations = 3};
+                if (_animationLayer != null && _contentRoot != null)
                 {
                     double scaleValue = ease.Ease(elapsed / PressScaleProgressFinishTimeSpan);
-                    _viewbox.Height = Height - (Height * PressScaleMaximumDecraseRate * _scaleStartValue * (1- scaleValue));
-                    _viewbox.Width = Width - (Width * PressScaleMaximumDecraseRate * _scaleStartValue * (1 - scaleValue));
+                    _animationLayer.Height = _contentRoot.ActualHeight - (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate * _scaleStartValue * (1- scaleValue));
+                    _animationLayer.Width = _contentRoot.ActualWidth - (_contentRoot.ActualWidth * PressScaleMaximumDecraseRate * _scaleStartValue * (1 - scaleValue));
+                    Canvas.SetLeft(_animationLayer, _contentRoot.ActualWidth * 0.5 - _animationLayer.ActualWidth * 0.5);
+                    Canvas.SetTop(_animationLayer, _contentRoot.ActualHeight * 0.5 - _animationLayer.ActualHeight * 0.5);
                 }
-            }
-
-            if (_viewbox != null)
-            {
-                _scaledRate = (Height - _viewbox.Height) / (Height * PressScaleMaximumDecraseRate);
             }
         }
     }
