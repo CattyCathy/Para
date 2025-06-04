@@ -9,7 +9,12 @@ using System.Windows.Media.Animation;
 
 namespace Para.UI.Control
 {
-    public class Button : System.Windows.Controls.ContentControl
+    /// <summary>
+    /// DO NOT USE IT UNLESS YOU ARE SURE WHAT YOU ARE DOING!
+    /// DO NOT USE IT UNLESS YOU ARE SURE WHAT YOU ARE DOING!
+    /// DO NOT USE IT UNLESS YOU ARE SURE WHAT YOU ARE DOING!
+    /// </summary>
+    public class WaoButton : System.Windows.Controls.ContentControl
     {
         // Members
         private Canvas? _contentRoot;
@@ -30,12 +35,12 @@ namespace Para.UI.Control
         public double PressScaleMaximumDecraseRate = 0.2;
         public double ButtonReleaseBounceTheresholdValue = 0.2;
 
-        static Button()
+        static WaoButton()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(Button), new System.Windows.FrameworkPropertyMetadata(typeof(Button)));
         }
 
-        public Button()
+        public WaoButton()
         {
             Loaded += Button_Loaded;
             MouseEnter += Button_MouseEnter;
@@ -152,19 +157,12 @@ namespace Para.UI.Control
 
                 if (_animationLayer != null && _contentRoot != null)
                 {
+                    //There's a problem with this function, might can be used as a new control.
                     double pressAnimatedTimeSpan = (_releaseTime - _pressStartTime).TotalSeconds;
-                    if (pressAnimatedTimeSpan > PressScaleProgressFinishTimeSpan)
-                    {
-                        pressAnimatedTimeSpan = PressScaleProgressFinishTimeSpan;
-                    }
-                    if (elapsed > pressAnimatedTimeSpan)
-                    {
-                        elapsed = pressAnimatedTimeSpan;    
-                    }
                     QuarticEase ease = new QuarticEase { EasingMode = EasingMode.EaseOut };
                     double scaleValue = ease.Ease(elapsed / pressAnimatedTimeSpan);
-                    _animationLayer.Height = _contentRoot.ActualHeight * (1 - PressScaleMaximumDecraseRate * _scaleStartValue) + (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate * _scaleStartValue * scaleValue);
-                    _animationLayer.Width = _contentRoot.ActualWidth * (1 - PressScaleMaximumDecraseRate * _scaleStartValue) + (_contentRoot.ActualWidth * PressScaleMaximumDecraseRate * _scaleStartValue * scaleValue);
+                    _animationLayer.Height = _contentRoot.ActualHeight - (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate * _scaleStartValue * ( scaleValue));
+                    _animationLayer.Width = _contentRoot.ActualWidth - (_contentRoot.ActualWidth * PressScaleMaximumDecraseRate * _scaleStartValue * ( scaleValue));
                     Canvas.SetLeft(_animationLayer, _contentRoot.ActualWidth * 0.5 - _animationLayer.ActualWidth * 0.5);
                     Canvas.SetTop(_animationLayer, _contentRoot.ActualHeight * 0.5 - _animationLayer.ActualHeight * 0.5);
                 }
