@@ -153,6 +153,11 @@ namespace Para.UI.Control
                 if (_animationLayer != null && _contentRoot != null)
                 {
                     double pressAnimatedTimeSpan = (_releaseTime - _pressStartTime).TotalSeconds;
+                    bool bounceRelease = (_releaseTime - _pressStartTime).TotalSeconds / PressScaleProgressFinishTimeSpan > ButtonReleaseBounceTheresholdValue;
+                    if (bounceRelease)
+                    {
+                        pressAnimatedTimeSpan = PressScaleProgressFinishTimeSpan;
+                    }
                     if (pressAnimatedTimeSpan > PressScaleProgressFinishTimeSpan)
                     {
                         pressAnimatedTimeSpan = PressScaleProgressFinishTimeSpan;
@@ -161,7 +166,9 @@ namespace Para.UI.Control
                     {
                         elapsed = pressAnimatedTimeSpan;    
                     }
-                    QuarticEase ease = new QuarticEase { EasingMode = EasingMode.EaseOut };
+                    EasingFunctionBase ease = bounceRelease
+                         ? new ElasticEase { EasingMode = EasingMode.EaseOut }
+                         : new QuarticEase { EasingMode = EasingMode.EaseOut };
                     double scaleValue = ease.Ease(elapsed / pressAnimatedTimeSpan);
                     _animationLayer.Height = _contentRoot.ActualHeight * (1 - PressScaleMaximumDecraseRate * _scaleStartValue) + (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate * _scaleStartValue * scaleValue);
                     _animationLayer.Width = _contentRoot.ActualWidth * (1 - PressScaleMaximumDecraseRate * _scaleStartValue) + (_contentRoot.ActualWidth * PressScaleMaximumDecraseRate * _scaleStartValue * scaleValue);
