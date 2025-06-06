@@ -22,6 +22,8 @@ namespace Para.UI.Control
         private DateTime _animationStartTime = DateTime.Now;
         private DateTime _pressStartTime = DateTime.Now;
         private DateTime _releaseTime = DateTime.Now;
+        private double _releaseStartContentRootHeight;
+        private double _releaseStartAnimationLayerHeight;
 
         // Public settable values
         public ClickMode ClickMode { get; set; } = ClickMode.Release;
@@ -117,6 +119,11 @@ namespace Para.UI.Control
             {
                 _scaleStartValue = (_contentRoot.ActualHeight - _animationLayer.Height) / (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate);
             }
+            if (_contentRoot != null && _animationLayer != null)
+            {
+                _releaseStartContentRootHeight = _contentRoot.ActualHeight;
+                _releaseStartAnimationLayerHeight = _animationLayer.ActualHeight;
+            }
             if (ClickMode == ClickMode.Release && IsMouseCaptured && _pressed)
             {
                 OnClick(this, e);
@@ -154,7 +161,7 @@ namespace Para.UI.Control
                 if (_animationLayer != null && _contentRoot != null)
                 {
                     double pressAnimatedTimeSpan = (_releaseTime - _pressStartTime).TotalSeconds;
-                    bool bounceRelease = (_releaseTime - _pressStartTime).TotalSeconds / PressScaleProgressFinishTimeSpan > ButtonReleaseBounceTheresholdValue;
+                    bool bounceRelease = ((_releaseStartContentRootHeight - _releaseStartAnimationLayerHeight)) > _releaseStartContentRootHeight * ButtonReleaseBounceTheresholdValue * PressScaleMaximumDecraseRate ;
                     if (bounceRelease)
                     {
                         pressAnimatedTimeSpan = PressScaleProgressFinishTimeSpan;
