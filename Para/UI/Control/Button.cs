@@ -23,7 +23,6 @@ namespace Para.UI.Control
         private DateTime _pressStartTime = DateTime.Now;
         private DateTime _releaseTime = DateTime.Now;
 
-
         // Public settable values
         public ClickMode ClickMode { get; set; } = ClickMode.Release;
         public double PressScaleProgressFinishTimeSpan = 1;
@@ -66,6 +65,10 @@ namespace Para.UI.Control
             }
         }
 
+
+        // Events
+
+        // Events: Mouse
         private void Button_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
             if (ClickMode == ClickMode.Hover)
@@ -78,6 +81,7 @@ namespace Para.UI.Control
 
         }
 
+        // Events: Mouse Button
         private void Button_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (!Dispatcher.CheckAccess())
@@ -99,7 +103,6 @@ namespace Para.UI.Control
             CompositionTarget.Rendering -= OnRendering;
             CompositionTarget.Rendering += OnRendering;
         }
-
         private void Button_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (!Dispatcher.CheckAccess())
@@ -123,11 +126,9 @@ namespace Para.UI.Control
         }
 
 
-        public virtual void OnClick(object sender, System.Windows.RoutedEventArgs e)
-        {
+        // Methods
 
-        }
-
+        // Methods: Visual
         private void OnRendering(object? sender, System.EventArgs eventArgs)
         {
             double elapsed = (DateTime.Now - _animationStartTime).TotalSeconds;
@@ -176,6 +177,13 @@ namespace Para.UI.Control
                     Canvas.SetTop(_animationLayer, _contentRoot.ActualHeight * 0.5 - _animationLayer.ActualHeight * 0.5);
                 }
             }
+        }
+
+
+        // For Instances
+        public virtual void OnClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+
         }
     }
 }
