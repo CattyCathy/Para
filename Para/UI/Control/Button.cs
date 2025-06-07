@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
@@ -86,6 +88,7 @@ namespace Para.UI.Control
         // Events: Mouse Button
         private void Button_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            Mouse.Capture((IInputElement)sender);
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.Invoke(() => Button_MouseLeftButtonDown(sender, e));
@@ -107,29 +110,33 @@ namespace Para.UI.Control
         }
         private void Button_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (!Dispatcher.CheckAccess())
+            Mouse.Capture(null);
+            if (_pressed)
             {
-                Dispatcher.Invoke(() => Button_MouseLeftButtonDown(sender, e));
-                return;
+                if (!Dispatcher.CheckAccess())
+                {
+                    Dispatcher.Invoke(() => Button_MouseLeftButtonDown(sender, e));
+                    return;
+                }
+                _pressed = false;
+                _animationStartTime = DateTime.Now;
+                _releaseTime = DateTime.Now;
+                if (_animationLayer != null && _contentRoot != null)
+                {
+                    _scaleStartValue = (_contentRoot.ActualHeight - _animationLayer.Height) / (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate);
+                }
+                if (_contentRoot != null && _animationLayer != null)
+                {
+                    _releaseStartContentRootHeight = _contentRoot.ActualHeight;
+                    _releaseStartAnimationLayerHeight = _animationLayer.ActualHeight;
+                }
+                if (ClickMode == ClickMode.Release && IsMouseCaptured && _pressed)
+                {
+                    OnClick(this, e);
+                }
+                CompositionTarget.Rendering -= OnRendering;
+                CompositionTarget.Rendering += OnRendering;
             }
-            _pressed = false;
-            _animationStartTime = DateTime.Now;
-            _releaseTime = DateTime.Now;
-            if (_animationLayer != null && _contentRoot != null)
-            {
-                _scaleStartValue = (_contentRoot.ActualHeight - _animationLayer.Height) / (_contentRoot.ActualHeight * PressScaleMaximumDecraseRate);
-            }
-            if (_contentRoot != null && _animationLayer != null)
-            {
-                _releaseStartContentRootHeight = _contentRoot.ActualHeight;
-                _releaseStartAnimationLayerHeight = _animationLayer.ActualHeight;
-            }
-            if (ClickMode == ClickMode.Release && IsMouseCaptured && _pressed)
-            {
-                OnClick(this, e);
-            }
-            CompositionTarget.Rendering -= OnRendering;
-            CompositionTarget.Rendering += OnRendering;
         }
 
 
