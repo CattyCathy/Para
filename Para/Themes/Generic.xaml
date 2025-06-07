@@ -111,4 +111,23 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <Style TargetType="{x:Type control:WaoButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type control:WaoButton}">
+                    <Canvas x:Name="PART_ContentRoot"
+                                  Margin="16 8">
+                        <Border x:Name="PART_AnimationLayer" Background="{TemplateBinding Background}"
+                                                                        CornerRadius="10">
+                            <Viewbox x:Name="PART_Viewbox" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Stretch="Uniform" >
+                                <Grid HorizontalAlignment="Stretch">
+                                    <ContentPresenter Content="{TemplateBinding Content}" Margin="4"/>
+                                </Grid>
+                            </Viewbox>
+                        </Border>
+                    </Canvas>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>
