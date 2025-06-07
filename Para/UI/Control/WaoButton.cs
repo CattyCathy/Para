@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
@@ -71,6 +73,10 @@ namespace Para.UI.Control
             }
         }
 
+
+        // Events
+
+        // Events: Mouse
         private void Button_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
             if (ClickMode == ClickMode.Hover)
@@ -83,8 +89,10 @@ namespace Para.UI.Control
 
         }
 
+        // Events: Mouse Button
         private void Button_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            Mouse.Capture((IInputElement)sender);
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.Invoke(() => Button_MouseLeftButtonDown(sender, e));
@@ -104,9 +112,9 @@ namespace Para.UI.Control
             CompositionTarget.Rendering -= OnRendering;
             CompositionTarget.Rendering += OnRendering;
         }
-
         private void Button_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            Mouse.Capture(null);
             if (!Dispatcher.CheckAccess())
             {
                 Dispatcher.Invoke(() => Button_MouseLeftButtonDown(sender, e));
@@ -128,11 +136,9 @@ namespace Para.UI.Control
         }
 
 
-        public virtual void OnClick(object sender, System.Windows.RoutedEventArgs e)
-        {
+        // Methods
 
-        }
-
+        // Methods: Visual
         private void OnRendering(object? sender, System.EventArgs eventArgs)
         {
             double elapsed = (DateTime.Now - _animationStartTime).TotalSeconds;
@@ -157,7 +163,6 @@ namespace Para.UI.Control
 
                 if (_animationLayer != null && _contentRoot != null)
                 {
-                    //There's a problem with this function, might can be used as a new control.
                     double pressAnimatedTimeSpan = (_releaseTime - _pressStartTime).TotalSeconds;
                     QuarticEase ease = new QuarticEase { EasingMode = EasingMode.EaseOut };
                     double scaleValue = ease.Ease(elapsed / pressAnimatedTimeSpan);
@@ -167,6 +172,13 @@ namespace Para.UI.Control
                     Canvas.SetTop(_animationLayer, _contentRoot.ActualHeight * 0.5 - _animationLayer.ActualHeight * 0.5);
                 }
             }
+        }
+
+
+        // For Instances
+        public virtual void OnClick(object sender, System.Windows.RoutedEventArgs e)
+        {
+
         }
     }
 }
